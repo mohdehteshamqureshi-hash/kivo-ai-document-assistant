@@ -1,0 +1,57 @@
+# Netlify Configuration for Kivo AI
+# Hosts both the React Vite frontend and Netlify Functions seamlessly on Netlify
+
+[build]
+  base = "frontend"
+  publish = "dist"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Explicit API Route Redirections to Netlify Functions
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/api/documents/upload"
+  to = "/.netlify/functions/documents"
+  status = 200
+
+[[redirects]]
+  from = "/api/documents/*"
+  to = "/.netlify/functions/documents"
+  status = 200
+
+[[redirects]]
+  from = "/api/documents"
+  to = "/.netlify/functions/documents"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat/query"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+# Catch-all for any other /api routes
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Single Page Application (SPA) Fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

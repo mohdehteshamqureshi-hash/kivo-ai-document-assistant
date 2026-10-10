@@ -58,7 +58,9 @@ async def get_health():
     """Returns backend status, embedding model, and in-memory index counts."""
     diag = rag_engine.get_diagnostics()
     ollama_stat = LLMService.check_ollama_status()
-    if ollama_stat["available"]:
+    if settings.GROQ_API_KEY:
+        llm_mode = f"Cloud (Groq {settings.GROQ_MODEL})"
+    elif ollama_stat["available"]:
         llm_mode = f"Local LLM (Ollama {settings.OLLAMA_MODEL})"
     elif settings.GEMINI_API_KEY or settings.OPENAI_API_KEY:
         llm_mode = "Cloud (Gemini/OpenAI)"

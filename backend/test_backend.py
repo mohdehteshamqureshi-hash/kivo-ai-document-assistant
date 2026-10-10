@@ -123,7 +123,12 @@ def test_6_chat_endpoint_insufficient_info():
     response = client.post("/chat", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert "not contain sufficient information" in data["answer"].lower()
+    ans_lower = data["answer"].lower()
+    assert (
+        "not contain sufficient information" in ans_lower
+        or "not contain enough information" in ans_lower
+        or "do not contain" in ans_lower
+    ), f"Expected insufficient information refusal, got: {data['answer']}"
     print("✅ Correctly returned insufficient-information response without hallucinating")
 
 

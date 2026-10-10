@@ -39,10 +39,14 @@ class Settings(BaseModel):
     TOP_K_RESULTS: int = int(os.getenv("TOP_K_RESULTS", "4"))
     MIN_SIMILARITY_SCORE: float = float(os.getenv("MIN_SIMILARITY_SCORE", "0.02"))
 
+    # AI Provider: Groq API
+    GROQ_API_KEY: str | None = os.getenv("GROQ_API_KEY", None)
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
     # Optional External LLM Keys (Gemini or OpenAI)
     GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY", None)
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY", None)
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "auto")  # 'auto', 'local', 'gemini', 'openai'
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "auto")  # 'auto', 'groq', 'local', 'gemini', 'openai'
 
 
 settings = Settings()

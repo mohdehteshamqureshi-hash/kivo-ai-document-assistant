@@ -37,6 +37,10 @@ class Settings:
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
     OLLAMA_TIMEOUT_SECONDS: int = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "30"))
 
+    # AI Provider: Groq API
+    GROQ_API_KEY: str | None = os.getenv("GROQ_API_KEY", None)
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
     # Optional Cloud LLM API Keys
     GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY", None)
     OPENAI_API_KEY: str | None = os.getenv("OPENAI_API_KEY", None)

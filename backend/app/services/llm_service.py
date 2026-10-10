@@ -30,6 +30,15 @@ class LLMService:
                 "zero-hallucination-guard",
             )
 
+        # Check for Groq API Key
+        if settings.GROQ_API_KEY:
+            try:
+                groq_answer = cls._call_groq_api(query, retrieved_chunks)
+                if groq_answer:
+                    return groq_answer, f"groq-{settings.GROQ_MODEL}"
+            except Exception as e:
+                print(f"[LLMService] Groq API call fallback: {e}")
+
         # Check for Gemini API Key
         if settings.GEMINI_API_KEY:
             try:
@@ -109,6 +118,58 @@ class LLMService:
         )
 
         return "\n".join(output_lines)
+
+    @classmethod
+    def _call_groq_api(
+        cls, query: str, retrieved_chunks: List[Tuple[ChunkMetadata, float]]
+    ) -> str:
+        context_blocks = []
+        for idx, (chunk, score) in enumerate(retrieved_chunks, 1):
+            context_blocks.append(
+                f"[Source {idx}]: File: {chunk.doc_name}, Page: {chunk.page}\nContent: {chunk.text}\n"
+            )
+
+        context_str = "\n".join(context_blocks)
+        system_prompt = (
+            "You are Kivo AI, a precise academic assistant. "
+            "Answer the user query based ONLY on the provided context passages. "
+            "Always cite the exact file name and page number for facts stated in this format: [filename, Page X]. "
+            "If the context does not contain enough information, state that honestly."
+        )
+        user_prompt = f"CONTEXT PASSAGES:\n{context_str}\n\nUSER QUERY: {query}\n\nANSWER:"
+
+        try:
+            from groq import Groq
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            completion = client.chat.completions.create(
+                model=settings.GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.2,
+                max_tokens=1024,
+            )
+            return completion.choices[0].message.content.strip()
+        except Exception:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "model": settings.GROQ_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.2,
+                "max_tokens": 1024,
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=20)
+            res.raise_for_status()
+            data = res.json()
+            return data["choices"][0]["message"]["content"].strip()
 
     @classmethod
     def _call_gemini_api(

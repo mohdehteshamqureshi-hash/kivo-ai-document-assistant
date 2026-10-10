@@ -1,0 +1,11 @@
+# API routes routed to Netlify Functions
+/api/health            /.netlify/functions/health       200
+/api/documents/upload  /.netlify/functions/documents    200
+/api/documents/*       /.netlify/functions/documents    200
+/api/documents         /.netlify/functions/documents    200
+/api/chat/query        /.netlify/functions/chat         200
+/api/chat              /.netlify/functions/chat         200
+/api/*                 /.netlify/functions/:splat       200
+
+# Single Page Application fallback
+/*                     /index.html                      200

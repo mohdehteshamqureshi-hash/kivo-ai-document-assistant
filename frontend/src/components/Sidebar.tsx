@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Database, BookOpen, Layers, X, Search } from "lucide-react";
+import { Plus, Trash2, Database, BookOpen, Layers, X, Search, Bot } from "lucide-react";
 import { BrandLogo } from "./BrandLogo";
 import { DocumentCard } from "./DocumentCard";
 import type { DocumentItem, HealthStatus } from "../types";
@@ -15,6 +15,7 @@ interface SidebarProps {
   onClearAllDocs: () => void;
   backendHealth: HealthStatus | null;
   isBackendOnline: boolean;
+  onNavigateHome?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClearAllDocs,
   backendHealth,
   isBackendOnline,
+  onNavigateHome,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -166,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-slate-200">{backendHealth?.vocabulary_size || 0} tokens</span>
               </div>
               <div className="flex justify-between items-center pt-1 border-t border-slate-800/60">
-                <span>FastAPI Service:</span>
+                <span>{backendHealth?.vector_engine?.includes("Netlify") ? "Netlify Service:" : "FastAPI Service:"}</span>
                 <span className={`inline-flex items-center gap-1 font-sans ${isBackendOnline ? "text-emerald-400" : "text-rose-400"}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isBackendOnline ? "bg-emerald-400" : "bg-rose-400"}`} />
                   {isBackendOnline ? "Operational" : "Offline"}
@@ -174,6 +176,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           </div>
+
+          {onNavigateHome && (
+            <button
+              type="button"
+              onClick={() => {
+                onNavigateHome();
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/40 text-slate-300 hover:text-white text-xs font-semibold transition-all mt-3 cursor-pointer shadow-sm"
+              title="Return to 3D Robot Mascot Home Page"
+            >
+              <Bot className="w-4 h-4 text-cyan-400" />
+              <span>Back to 3D Robot Home</span>
+            </button>
+          )}
         </div>
       </aside>
     </>

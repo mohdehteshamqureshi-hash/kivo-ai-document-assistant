@@ -6,9 +6,13 @@ import type {
   QueryResponse,
 } from "../types";
 
-// Read API URL from Vite environment variables with fallback
+// Read API URL from Vite environment variables with fallback to relative same-domain /api
 export const BACKEND_API_URL: string =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+  import.meta.env.VITE_API_URL || "/api";
+
+export const DOCS_URL: string = BACKEND_API_URL.startsWith("http")
+  ? BACKEND_API_URL.replace(/\/api\/?$/, "") + "/docs"
+  : "/api/health";
 
 const apiClient = axios.create({
   baseURL: BACKEND_API_URL,
@@ -41,7 +45,7 @@ function handleAxiosError(err: unknown, defaultMessage: string): never {
     }
     if (!axiosErr.response) {
       throw new ApiError(
-        "Backend server is unreachable. Please ensure the FastAPI server is running on http://127.0.0.1:8000.",
+        `Backend server is unreachable. Please ensure the backend server is running at ${BACKEND_API_URL}.`,
         0
       );
     }

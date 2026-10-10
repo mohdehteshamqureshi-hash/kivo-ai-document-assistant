@@ -5,7 +5,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { PiShoppingBagBold } from "react-icons/pi";
+import { Sparkles, ArrowRight, ChevronDown, Heart } from "lucide-react";
+import { BrandLogo } from "../BrandLogo";
 
 class HeartCurve extends THREE.Curve<THREE.Vector3> {
   constructor() {
@@ -251,6 +252,13 @@ function RobotEye({
       const blinkClose = Math.sin(progress * Math.PI);
 
       targetScaleY = Math.max(0.05, 1.0 - blinkClose);
+    }
+
+    if (isHeart && heartEyeRef.current) {
+      // Animated, rhythmic heartbeat pulse: double-beat lub-dub cycle
+      const t = clock.getElapsedTime() * 11;
+      const beat = 1 + 0.24 * Math.pow(Math.sin(t), 4);
+      heartEyeRef.current.scale.set(beat, beat, beat);
     }
 
     groupRef.current.scale.set(scale, scale * targetScaleY, scale);
@@ -555,7 +563,7 @@ function RobotPrototype({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       isLovedRef.current = false;
-    }, 2000);
+    }, 2800);
   };
 
   const neckProfile = useMemo(() => {
@@ -699,8 +707,10 @@ function RobotPrototype({
 
 export interface NavItem {
   label: string;
-  href: string;
+  href?: string;
   target?: string;
+  onClick?: () => void;
+  active?: boolean;
 }
 
 export interface RobotHeroProps {
@@ -740,72 +750,109 @@ function AntennaNavbar({
   const lineOpacity = useTransform(scrollY, [0, 50], [1, 0]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full pt-8 px-8 pointer-events-none">
+    <nav className="sticky top-0 z-50 w-full pt-4 sm:pt-6 px-4 sm:px-8 pointer-events-none">
       <div className="w-full max-w-[1400px] mx-auto flex flex-col relative pointer-events-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between relative gap-4 lg:gap-0">
-          <div className="flex flex-wrap justify-center lg:justify-start items-center gap-2 sm:gap-3 z-20">
-            {leftItems.map((item, idx) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target={item.target}
-                rel={
-                  item.target === "_blank" ? "noopener noreferrer" : undefined
+        <div className="flex flex-col lg:flex-row items-center justify-between relative gap-4 lg:gap-0 bg-[#070d1e]/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-2xl shadow-cyan-950/25">
+          {/* Left: Brand Logo & Links */}
+          <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-5 z-20">
+            <BrandLogo size="sm" showTagline={false} />
+            <div className="h-5 w-px bg-slate-800 hidden md:block" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              {leftItems.map((item, idx) => {
+                const isSelected = item.active || hoveredIndex === idx;
+                const linkClass = `relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors overflow-hidden cursor-pointer ${
+                  item.active
+                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/40"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                }`;
+
+                const itemContent = (
+                  <>
+                    <span>{item.label}</span>
+                    {isSelected && (
+                      <motion.div
+                        layoutId="navbar-indicator-left"
+                        className="absolute inset-0 border-b-2 border-cyan-400"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </>
+                );
+
+                if (item.onClick) {
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={item.onClick}
+                      onMouseEnter={() => setHoveredIndex(idx)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                      className={linkClass}
+                    >
+                      {itemContent}
+                    </button>
+                  );
                 }
-                onMouseEnter={() => setHoveredIndex(idx)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className="relative px-7 py-2.5 rounded-full bg-white text-black hover:bg-zinc-200 text-sm font-bold transition-all overflow-hidden shadow-[0_4px_14px_rgba(255,255,255,0.15)]"
-              >
-                {item.label}
-                {hoveredIndex === idx && (
-                  <motion.div
-                    layoutId="navbar-indicator-left"
-                    className="absolute inset-0 border-b-[3px] border-black"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </a>
-            ))}
+
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href || "#"}
+                    target={item.target}
+                    rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+                    onMouseEnter={() => setHoveredIndex(idx)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    className={linkClass}
+                  >
+                    {itemContent}
+                  </a>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center pointer-events-auto cursor-pointer group z-10">
-            <div className="relative flex items-center justify-center h-12 w-16">
-              <div className="absolute left-2 w-1.5 h-4 bg-zinc-300 rounded-l-md transition-transform duration-300 group-hover:-translate-x-1" />
-              <div className="absolute right-2 w-1.5 h-4 bg-zinc-300 rounded-r-md transition-transform duration-300 group-hover:translate-x-1" />
+          {/* Center Mascot Emblem */}
+          <div 
+            onClick={onCtaClick}
+            className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center pointer-events-auto cursor-pointer group z-10"
+            title="Explore RAG App"
+          >
+            <div className="relative flex items-center justify-center h-10 w-14">
+              <div className="absolute left-1 w-1 h-3 bg-cyan-400/60 rounded-l-md transition-transform duration-300 group-hover:-translate-x-1" />
+              <div className="absolute right-1 w-1 h-3 bg-cyan-400/60 rounded-r-md transition-transform duration-300 group-hover:translate-x-1" />
 
-              <div className="z-10 w-10 h-10 bg-white/10 border-2 border-white/20 backdrop-blur-md rounded-[12px] flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:bg-white/20 group-hover:shadow-[0_4px_25px_rgba(255,255,255,0.15)]">
-                <div className="w-[70%] h-[60%] bg-[#0a0a0a] rounded-lg flex items-center justify-center gap-1.5 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
-                  <div className="w-1.5 h-3 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.2]" />
-                  <div className="w-1.5 h-3 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.2]" />
+              <div className="z-10 w-9 h-9 bg-slate-900/90 border border-cyan-500/40 backdrop-blur-md rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,255,198,0.25)] transition-all duration-300 group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,255,198,0.45)]">
+                <div className="w-[70%] h-[60%] bg-[#050914] rounded-lg flex items-center justify-center gap-1 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+                  <div className="w-1.5 h-2.5 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.3]" />
+                  <div className="w-1.5 h-2.5 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.3]" />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 sm:gap-3 w-full lg:w-auto mt-4 lg:mt-0 z-20">
+          {/* Right Actions: API Docs & Explore RAG App button */}
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 sm:gap-3 w-full lg:w-auto z-20">
             <a
               href={contactHref}
               target={contactTarget}
-              rel={
-                contactTarget === "_blank" ? "noopener noreferrer" : undefined
-              }
-              className="px-5 sm:px-7 py-2.5 rounded-full bg-white text-black hover:bg-zinc-200 text-xs sm:text-sm font-bold transition-all shadow-[0_4px_14px_rgba(255,255,255,0.15)]"
+              rel={contactTarget === "_blank" ? "noopener noreferrer" : undefined}
+              className="px-4 py-2 rounded-full border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-semibold transition-all shadow-sm"
             >
               {contactText}
             </a>
             <button
               onClick={onCtaClick}
-              className="px-5 sm:px-7 py-2.5 rounded-full bg-[#00ffc6] text-black text-xs sm:text-sm font-black hover:bg-[#00e5b2] transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(0,255,198,0.4)]"
+              className="px-5 sm:px-6 py-2 rounded-full bg-gradient-to-r from-[#00ffc6] via-cyan-400 to-sky-400 text-slate-950 text-xs sm:text-sm font-black hover:opacity-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,255,198,0.4)] hover:shadow-[0_0_30px_rgba(0,255,198,0.65)] hover:scale-[1.02] active:scale-[0.98]"
             >
-              {ctaText}
-              <PiShoppingBagBold size={18} />
+              <span>{ctaText}</span>
+              <Sparkles className="w-4 h-4 text-slate-950" />
             </button>
           </div>
         </div>
 
         <motion.div
           style={{ opacity: lineOpacity }}
-          className="w-full mt-6 border-b-2 border-dotted border-white/30"
+          className="w-full mt-4 border-b border-cyan-500/20"
         />
       </div>
     </nav>
@@ -813,70 +860,82 @@ function AntennaNavbar({
 }
 
 export function RobotHero({
-  backgroundText = "UITHEFACTORY",
+  backgroundText = "KIVO AI",
   navItemsLeft = [
-    { label: "Product", href: "#" },
-    { label: "About", href: "#" },
-    { label: "Specs", href: "#" },
-    { label: "Reviews", href: "#" },
+    { label: "Overview", href: "#overview" },
+    { label: "Features", href: "#features" },
+    { label: "Knowledge Base", href: "#rag-workspace" },
   ],
-  contactText = "Contact",
-  contactHref = "#",
-  contactTarget,
-  ctaText = "Buy Now",
+  contactText = "API Docs",
+  contactHref = "http://127.0.0.1:8000/docs",
+  contactTarget = "_blank",
+  ctaText = "Explore RAG App",
   onCtaClick,
-  color = "#c4c4c4",
+  color = "#c8d0dc",
   scale = 1,
   pantallaColor = "#00ffc6",
-  pantallaBrillo = 1.2,
+  pantallaBrillo = 1.6,
   blinkCycle = 3.0,
-  metalness = 0.0,
+  metalness = 0.15,
 }: RobotHeroProps = {}) {
   const containerRef = useRef<HTMLElement>(null);
 
   const entorno = {
-    fondoArriba: "#cecbcb",
-    fondoMedio: "#9a9a9a",
-    fondoAbajo: "#bebebe",
-    luzAmbiente: 0.75,
-    luzPrincipal: 0.0,
-    luzPrincipalColor: "#00ffe2",
-    luzRelleno: 0.0,
-    luzRellenoColor: "#dbdbdb",
-    sombraOpacidad: 0.85,
-    sombraBlur: 1.7,
+    fondoArriba: "#040814",
+    fondoMedio: "#070d1e",
+    fondoAbajo: "#050a18",
+    luzAmbiente: 1.1,
+    luzPrincipal: 2.8,
+    luzPrincipalColor: "#00ffc6",
+    luzRelleno: 2.0,
+    luzRellenoColor: "#38bdf8",
+    sombraOpacidad: 0.75,
+    sombraBlur: 2.0,
   };
 
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-dvh min-h-[600px] overflow-hidden"
+      className="relative w-full min-h-screen overflow-hidden flex flex-col justify-between"
       style={{
-        background: `linear-gradient(to bottom, ${entorno.fondoArriba} 0%, ${entorno.fondoArriba} 55%, ${entorno.fondoMedio} 65%, ${entorno.fondoAbajo} 100%)`,
+        background: `radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 198, 0.12), transparent), radial-gradient(ellipse 60% 50% at 50% 110%, rgba(56, 189, 248, 0.08), transparent), linear-gradient(to bottom, #040814 0%, #070d1e 50%, #050a18 100%)`,
       }}
     >
+      {/* Background Cyber Grid subtle pattern */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-20"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 255, 198, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 198, 0.07) 1px, transparent 1px)`,
+          backgroundSize: "48px 48px",
+        }}
+      />
+
+      {/* Watermark Branding element integrated into design */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
         style={{ zIndex: 0 }}
       >
-        <h1
-          className="font-sans font-black select-none whitespace-nowrap"
-          style={{
-            color: "#000000",
-            opacity: 0.13,
-            letterSpacing: "-0.05em",
-            fontSize: "clamp(4rem, 15vw, 14rem)",
-            lineHeight: 1,
-            transform: `translate(0px, 40px) rotate(0deg)`,
-          }}
-        >
-          {backgroundText}
-        </h1>
+        <div className="relative flex flex-col items-center select-none -translate-y-8">
+          <h1
+            className="font-sans font-black select-none whitespace-nowrap tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white/10 via-cyan-400/5 to-transparent"
+            style={{
+              fontSize: "clamp(5rem, 18vw, 15rem)",
+              lineHeight: 1,
+              textShadow: "0 0 80px rgba(0, 255, 198, 0.12)",
+            }}
+          >
+            {backgroundText}
+          </h1>
+          <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.4em] text-cyan-400/30 -mt-4 sm:-mt-8">
+            Intelligent Document Assistant
+          </div>
+        </div>
       </div>
 
+      {/* 3D Interactive Robot Canvas */}
       <div className="absolute inset-0 z-10">
         <Canvas shadows camera={{ position: [0, 0.2, 6], fov: 40 }}>
-          <ambientLight intensity={entorno.luzAmbiente} color="#ffffff" />
+          <ambientLight intensity={entorno.luzAmbiente} color="#c7d2fe" />
 
           <directionalLight
             position={[0, 6, 3]}
@@ -898,6 +957,12 @@ export function RobotHero({
             color={entorno.luzRellenoColor}
           />
 
+          <directionalLight
+            position={[0, -2, -3]}
+            intensity={1.2}
+            color="#00ffc6"
+          />
+
           <Environment preset="studio" blur={0.5} />
 
           <ResponsiveGroup scale={scale}>
@@ -908,7 +973,7 @@ export function RobotHero({
               resolution={1024}
               blur={entorno.sombraBlur}
               far={2.5}
-              color="#000000"
+              color="#00ffc6"
             />
             <RobotPrototype
               neckParams={{
@@ -938,7 +1003,8 @@ export function RobotHero({
         </Canvas>
       </div>
 
-      <div className="absolute inset-0 z-20 pointer-events-none flex flex-col">
+      {/* Hero UI Overlay with Navbar and Compelling Content */}
+      <div className="relative z-20 pointer-events-none flex flex-col justify-between min-h-screen">
         <AntennaNavbar
           leftItems={navItemsLeft}
           contactText={contactText}
@@ -948,8 +1014,65 @@ export function RobotHero({
           onCtaClick={onCtaClick}
         />
 
-        <div className="relative w-full max-w-[1400px] mx-auto px-8 flex-1 flex flex-col">
-          <div className="mt-auto flex justify-between items-end pb-12 w-full"></div>
+        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 flex-1 flex flex-col justify-end pb-8 sm:pb-12 pointer-events-none">
+          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 pointer-events-auto">
+            {/* Left Hero Copy */}
+            <div className="max-w-xl text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3 backdrop-blur-md shadow-[0_0_15px_rgba(0,255,198,0.15)]">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                <span>Autonomous RAG Engine &amp; 3D Neural Mascot</span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1] mb-3">
+                Intelligent Document Assistant with <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500">Exact Citations</span>
+              </h2>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
+                Interrogate multi-page PDFs, technical manuals, and research papers with zero hallucination. Powered by NumPy vector embeddings, sub-second semantic retrieval, and exact page-level coordinate references.
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <button
+                  type="button"
+                  onClick={onCtaClick}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#00ffc6] via-cyan-400 to-sky-400 text-slate-950 font-black text-sm shadow-[0_0_25px_rgba(0,255,198,0.45)] hover:shadow-[0_0_35px_rgba(0,255,198,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 group cursor-pointer"
+                >
+                  <span>Explore RAG App</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                <a
+                  href="#features"
+                  className="px-5 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-sm transition-all flex items-center gap-2"
+                >
+                  <span>View Features</span>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </a>
+              </div>
+            </div>
+
+            {/* Right Interactive Hints & Feature Badges */}
+            <div className="flex flex-col items-center lg:items-end gap-3 text-right">
+              {/* Interactive hint */}
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-cyan-500/20 text-[11px] text-cyan-300 font-mono shadow-lg backdrop-blur-md">
+                <Heart className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+                <span>Move cursor to guide robot • Click robot for heart eyes</span>
+              </div>
+
+              {/* Feature chips */}
+              <div className="flex flex-wrap justify-center lg:justify-end gap-2 text-[11px] font-semibold text-slate-300">
+                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+                  <span className="text-emerald-400">●</span> 100% Grounded Citations
+                </span>
+                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+                  <span className="text-cyan-400">●</span> Sub-second NumPy Search
+                </span>
+                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+                  <span className="text-sky-400">●</span> Exact Page Coordinates
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
