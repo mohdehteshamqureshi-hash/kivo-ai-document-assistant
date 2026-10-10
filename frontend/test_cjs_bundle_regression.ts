@@ -23,7 +23,7 @@ async function runRegressionTest() {
     // 1. Bundle with esbuild targeting Node CommonJS (simulating Netlify zip-it-and-ship-it)
     console.log("Step 1: Bundling documents.ts with esbuild (platform=node, format=cjs)...");
     execSync(
-      `npx esbuild "${entryPath}" --platform=node --format=cjs --bundle --external:pdf-parse --external:@netlify/blobs --external:busboy --external:groq-sdk --outfile="${tempBundlePath}"`,
+      `npx esbuild "${entryPath}" --platform=node --format=cjs --bundle --external:unpdf --external:@netlify/blobs --external:busboy --external:groq-sdk --outfile="${tempBundlePath}"`,
       { cwd: __dirname, stdio: "pipe" }
     );
     console.log("✅ Bundled successfully with zero syntax/bundling errors.");
@@ -35,8 +35,10 @@ async function runRegressionTest() {
     }
     console.log("✅ Verified: Bundle does not contain createRequire(import.meta.url).");
 
-    // 3. Dynamically require the bundled CommonJS module in Node
-    console.log("Step 2: Loading bundled CommonJS module into Node runtime...");
+    // 3. Dynamically require the bundled CommonJS module in Node (with clean globalThis)
+    console.log("Step 2: Loading bundled CommonJS module into Node runtime (verifying no DOMMatrix error)...");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).DOMMatrix;
     const { createRequire } = await import("module");
     const nodeRequire = createRequire(import.meta.url);
     const bundledModule = nodeRequire(tempBundlePath);

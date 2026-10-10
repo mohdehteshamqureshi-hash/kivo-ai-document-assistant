@@ -2,9 +2,12 @@
  * Page-Aware PDF Parsing and Chunking Module for Kivo AI.
  * Extracts text page-by-page from binary PDF buffers and partitions it into
  * overlapping sliding-window passages preserving exact 1-indexed page numbers.
+ *
+ * Uses unpdf for serverless and edge-compatible PDF text extraction without
+ * native binary addon dependencies (such as @napi-rs/canvas) or browser DOM globals.
  */
 
-import * as pdfParseModule from "pdf-parse";
+import { extractText } from "unpdf";
 
 export interface PageContent {
   pageNum: number;
@@ -29,38 +32,23 @@ export async function extractPdfPages(buffer: Buffer): Promise<PageContent[]> {
 
   const isPdfHeader = buffer.length >= 4 && buffer.slice(0, 4).toString() === "%PDF";
 
-  try {
-    // pdf-parse v2 provides the PDFParse class
-    if (pdfParseModule.PDFParse) {
-      const parser = new pdfParseModule.PDFParse({ data: buffer });
-      const result = await parser.getText();
-      if (result && Array.isArray(result.pages) && result.pages.length > 0) {
-        return result.pages.map((p: { text?: string; num?: number }, idx: number) => ({
-          pageNum: p.num || idx + 1,
-          text: (p.text || "").trim(),
-        }));
-      }
-      if (result && result.text) {
-        return [{ pageNum: 1, text: result.text.trim() }];
-      }
-    }
-
-    // pdf-parse v1 fallback if exported as direct function
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const directParser = typeof pdfParseModule === "function" ? pdfParseModule : (pdfParseModule as any).default;
-    if (typeof directParser === "function") {
-      const data = await directParser(buffer);
-      return [{ pageNum: 1, text: (data.text || "").trim() }];
-    }
-  } catch (err) {
-    if (isPdfHeader) {
-      throw new Error(`Failed to parse PDF document: ${err instanceof Error ? err.message : String(err)}`);
-    }
+  // If plain text or markdown document, return immediately
+  if (!isPdfHeader) {
+    const rawString = buffer.toString("utf-8");
+    return [{ pageNum: 1, text: rawString.trim() }];
   }
 
-  // Fallback: If plain text or markdown document
-  const rawString = buffer.toString("utf-8");
-  return [{ pageNum: 1, text: rawString.trim() }];
+  try {
+    const { text } = await extractText(new Uint8Array(buffer), { mergePages: false });
+    const pagesArray = Array.isArray(text) ? text : [text];
+
+    return pagesArray.map((pageText, idx) => ({
+      pageNum: idx + 1,
+      text: (pageText || "").trim(),
+    }));
+  } catch (err) {
+    throw new Error(`Failed to parse PDF document: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 /**
