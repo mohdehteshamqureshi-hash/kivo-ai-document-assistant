@@ -4,11 +4,7 @@
  * overlapping sliding-window passages preserving exact 1-indexed page numbers.
  */
 
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const pdfParseModule = require("pdf-parse");
+import * as pdfParseModule from "pdf-parse";
 
 export interface PageContent {
   pageNum: number;
@@ -50,8 +46,10 @@ export async function extractPdfPages(buffer: Buffer): Promise<PageContent[]> {
     }
 
     // pdf-parse v1 fallback if exported as direct function
-    if (typeof pdfParseModule === "function") {
-      const data = await pdfParseModule(buffer);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const directParser = typeof pdfParseModule === "function" ? pdfParseModule : (pdfParseModule as any).default;
+    if (typeof directParser === "function") {
+      const data = await directParser(buffer);
       return [{ pageNum: 1, text: (data.text || "").trim() }];
     }
   } catch (err) {
