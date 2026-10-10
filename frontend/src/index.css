@@ -10,8 +10,8 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #070d1e;
-    color: #f8fafc;
+    background-color: #ffffff;
+    color: #0f172a;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -34,7 +34,7 @@
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom scrollbars for SaaS aesthetic */
+/* Custom scrollbars for clean SaaS aesthetic */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -45,10 +45,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.4);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(100, 116, 139, 0.6);
 }

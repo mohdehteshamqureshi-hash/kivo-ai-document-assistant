@@ -265,7 +265,7 @@ export default function App() {
   // ---------------------------------------------------------------------------
   if (activeView === "workspace") {
     return (
-      <div className="flex h-screen w-screen bg-[#070d1e] text-slate-100 font-sans overflow-hidden selection:bg-blue-600 selection:text-white">
+      <div className="flex h-screen w-screen bg-[#f8fafc] text-slate-900 font-sans overflow-hidden selection:bg-blue-600 selection:text-white">
         {/* Left Full-Height Sidebar */}
         <Sidebar
           isOpen={isSidebarOpen}
@@ -282,7 +282,7 @@ export default function App() {
         />
 
         {/* Main Full-Screen Workspace Area */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070d1e]">
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#f8fafc]">
           {/* Top Navbar with Responsive Switcher */}
           <TopNavbar
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -314,20 +314,20 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowUploadArea(!showUploadArea)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                   <span>Document Ingestion ({documents.length} Indexed)</span>
                   {showUploadArea ? (
-                    <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                    <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
                   ) : (
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                   )}
                 </button>
 
                 {documents.length > 0 && !showUploadArea && (
-                  <span className="text-[11px] text-slate-400">
-                    Targeting: <strong className="text-slate-200">{activeDocName || "All Documents"}</strong>
+                  <span className="text-[11px] text-slate-500">
+                    Targeting: <strong className="text-slate-800">{activeDocName || "All Documents"}</strong>
                   </span>
                 )}
               </div>
@@ -361,7 +361,7 @@ export default function App() {
             </div>
 
             {/* Sticky Bottom Input Bar */}
-            <div className="pt-3 pb-2 sticky bottom-0 bg-[#070d1e]/90 backdrop-blur-md">
+            <div className="pt-3 pb-2 sticky bottom-0 bg-[#f8fafc]/90 backdrop-blur-md">
               <ChatInput
                 value={inputQuery}
                 onChange={setInputQuery}
@@ -386,7 +386,7 @@ export default function App() {
   // VIEW 2: 3D ROBOT LANDING PAGE & ARCHITECTURE OVERVIEW (Home View)
   // ---------------------------------------------------------------------------
   return (
-    <div className="min-h-screen w-full bg-[#070d1e] text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950 flex flex-col">
+    <div className="min-h-screen w-full bg-white text-slate-900 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
       {/* 1. Futuristic Landing Page with Interactive 3D Robot */}
       <section id="overview" className="w-full relative">
         <RobotHero
@@ -416,21 +416,21 @@ export default function App() {
       </section>
 
       {/* 2. Architecture & Capabilities Section */}
-      <section id="features" className="w-full py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-800/80 bg-gradient-to-b from-[#070d1e] via-[#081128] to-[#070d1e] relative">
+      <section id="features" className="w-full py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200 bg-gradient-to-b from-[#f8fafc] via-white to-[#f8fafc] relative">
         {/* Ambient Glows */}
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 blur-[120px] pointer-events-none rounded-full" />
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-blue-600/5 blur-[120px] pointer-events-none rounded-full" />
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-sky-500/10 blur-[120px] pointer-events-none rounded-full" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-blue-600/10 blur-[120px] pointer-events-none rounded-full" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold mb-3 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>Core Engineering Principles</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
               Groundbreaking Grounded RAG Architecture
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
               Designed from first principles to solve LLM hallucination in technical document interrogation through pure linear algebra, coordinate preservation, and contextual citation ranking.
             </p>
           </div>
@@ -438,57 +438,57 @@ export default function App() {
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-16">
             {/* Card 1 */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#091124]/80 border border-slate-800/90 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,198,0.1)] group flex flex-col justify-between">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 transition-all duration-300 shadow-xs hover:shadow-xl group flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-blue-600 mb-5 group-hover:scale-110 transition-transform">
                   <FileText className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
                   Page-Aware PDF Ingestion
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Extracts text directly from binary PDF structures, preserving 1-indexed page coordinates for every paragraph so you can verify exact original coordinates.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center gap-2 text-xs font-mono text-cyan-400">
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-mono text-blue-600">
                 <span>01. Ingestion Layer</span>
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#091124]/80 border border-slate-800/90 hover:border-sky-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(56,189,248,0.1)] group flex flex-col justify-between">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-sky-400 transition-all duration-300 shadow-xs hover:shadow-xl group flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-5 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 mb-5 group-hover:scale-110 transition-transform">
                   <Cpu className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-sky-300 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-sky-600 transition-colors">
                   Normalized Vector Engine
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Eliminates heavy external vector databases. Embeddings are stored in normalized 384-dimensional dense arrays with sub-millisecond cosine similarity calculation.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center gap-2 text-xs font-mono text-sky-400">
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-mono text-sky-600">
                 <span>02. Vector Space</span>
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#091124]/80 border border-slate-800/90 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] group flex flex-col justify-between">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-400 transition-all duration-300 shadow-xs hover:shadow-xl group flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-5 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 mb-5 group-hover:scale-110 transition-transform">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
                   100% Grounded Citations
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Answers cite exact document names, page indices, relevance match percentages, and excerpt passages. Zero blind generation; inspect exact verified sources for each statement.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center gap-2 text-xs font-mono text-indigo-400">
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-mono text-indigo-600">
                 <span>03. Synthesis &amp; Citation</span>
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -496,35 +496,35 @@ export default function App() {
           </div>
 
           {/* Real-time Diagnostics Bar with Direct Workspace Launch */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#060c1d] border border-slate-800/90 flex flex-wrap items-center justify-between gap-4">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs sm:text-sm font-semibold text-slate-200">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs sm:text-sm font-semibold text-slate-800">
                 Active Knowledge Engine Status
               </span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                 {isBackendOnline ? "Engine Online" : "Service Offline"}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-xs font-mono text-slate-400">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-xs font-mono text-slate-500">
               <div>
-                <span className="text-slate-500">Indexed Documents: </span>
-                <strong className="text-slate-200">{documents.length}</strong>
+                <span className="text-slate-400">Indexed Documents: </span>
+                <strong className="text-slate-800">{documents.length}</strong>
               </div>
               <div>
-                <span className="text-slate-500">Vector Chunks: </span>
-                <strong className="text-cyan-400">{backendHealth?.total_chunks || 0}</strong>
+                <span className="text-slate-400">Vector Chunks: </span>
+                <strong className="text-blue-600 font-bold">{backendHealth?.total_chunks || 0}</strong>
               </div>
               <div>
-                <span className="text-slate-500">Engine: </span>
-                <strong className="text-sky-400">Normalized Dense Vector Space</strong>
+                <span className="text-slate-400">Engine: </span>
+                <strong className="text-sky-600 font-semibold">Normalized Dense Vector Space</strong>
               </div>
             </div>
 
             <button
               onClick={() => navigateTo("workspace")}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00ffc6] to-sky-400 text-slate-950 font-black text-xs hover:opacity-90 transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white font-bold text-xs hover:opacity-95 transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/20 cursor-pointer"
             >
               <span>Launch Full Workspace</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -534,27 +534,27 @@ export default function App() {
       </section>
 
       {/* 3. Footer */}
-      <footer className="w-full border-t border-slate-800/80 bg-[#040812] py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-auto">
+      <footer className="w-full border-t border-slate-200 bg-white py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <BrandLogo size="sm" showTagline={false} />
-            <span className="text-slate-600">|</span>
-            <span>Intelligent RAG-Based Document Assistant</span>
+            <span className="text-slate-300">|</span>
+            <span className="text-slate-600 font-medium">Intelligent RAG-Based Document Assistant</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-4 text-slate-500">
             <button
               onClick={() => navigateTo("workspace")}
-              className="hover:text-cyan-400 transition-colors flex items-center gap-1 cursor-pointer font-semibold"
+              className="hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer font-semibold"
             >
-              <Bot className="w-3.5 h-3.5 text-cyan-400" />
+              <Bot className="w-3.5 h-3.5 text-blue-600" />
               <span>Full Workspace</span>
             </button>
             <a
               href={DOCS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-cyan-400 transition-colors flex items-center gap-1"
+              className="hover:text-blue-600 transition-colors flex items-center gap-1"
             >
               <span>API Diagnostics</span>
               <ExternalLink className="w-3 h-3" />

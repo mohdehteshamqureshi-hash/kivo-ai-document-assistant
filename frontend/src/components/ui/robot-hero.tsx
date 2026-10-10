@@ -752,18 +752,18 @@ function AntennaNavbar({
   return (
     <nav className="sticky top-0 z-50 w-full pt-4 sm:pt-6 px-4 sm:px-8 pointer-events-none">
       <div className="w-full max-w-[1400px] mx-auto flex flex-col relative pointer-events-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between relative gap-4 lg:gap-0 bg-[#070d1e]/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-2xl shadow-cyan-950/25">
+        <div className="flex flex-col lg:flex-row items-center justify-between relative gap-4 lg:gap-0 bg-white/85 backdrop-blur-xl border border-slate-200/90 rounded-2xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg shadow-slate-200/50">
           {/* Left: Brand Logo & Links */}
           <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-5 z-20">
             <BrandLogo size="sm" showTagline={false} />
-            <div className="h-5 w-px bg-slate-800 hidden md:block" />
+            <div className="h-5 w-px bg-slate-200 hidden md:block" />
             <div className="flex items-center gap-1 sm:gap-2">
               {leftItems.map((item, idx) => {
                 const isSelected = item.active || hoveredIndex === idx;
                 const linkClass = `relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors overflow-hidden cursor-pointer ${
                   item.active
-                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/40"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-sky-50 text-blue-700 border border-sky-300"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`;
 
                 const itemContent = (
@@ -772,7 +772,7 @@ function AntennaNavbar({
                     {isSelected && (
                       <motion.div
                         layoutId="navbar-indicator-left"
-                        className="absolute inset-0 border-b-2 border-cyan-400"
+                        className="absolute inset-0 border-b-2 border-blue-600"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -818,11 +818,11 @@ function AntennaNavbar({
             title="Explore RAG App"
           >
             <div className="relative flex items-center justify-center h-10 w-14">
-              <div className="absolute left-1 w-1 h-3 bg-cyan-400/60 rounded-l-md transition-transform duration-300 group-hover:-translate-x-1" />
-              <div className="absolute right-1 w-1 h-3 bg-cyan-400/60 rounded-r-md transition-transform duration-300 group-hover:translate-x-1" />
+              <div className="absolute left-1 w-1 h-3 bg-blue-500/60 rounded-l-md transition-transform duration-300 group-hover:-translate-x-1" />
+              <div className="absolute right-1 w-1 h-3 bg-blue-500/60 rounded-r-md transition-transform duration-300 group-hover:translate-x-1" />
 
-              <div className="z-10 w-9 h-9 bg-slate-900/90 border border-cyan-500/40 backdrop-blur-md rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,255,198,0.25)] transition-all duration-300 group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(0,255,198,0.45)]">
-                <div className="w-[70%] h-[60%] bg-[#050914] rounded-lg flex items-center justify-center gap-1 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+              <div className="z-10 w-9 h-9 bg-white border border-sky-300 backdrop-blur-md rounded-xl flex items-center justify-center shadow-md shadow-sky-500/20 transition-all duration-300 group-hover:border-blue-500 group-hover:shadow-lg">
+                <div className="w-[70%] h-[60%] bg-slate-900 rounded-lg flex items-center justify-center gap-1 overflow-hidden shadow-inner">
                   <div className="w-1.5 h-2.5 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.3]" />
                   <div className="w-1.5 h-2.5 bg-[#00ffc6] rounded-[2px] shadow-[0_0_8px_#00ffc6] transition-transform duration-200 group-hover:scale-y-[0.3]" />
                 </div>
@@ -836,23 +836,23 @@ function AntennaNavbar({
               href={contactHref}
               target={contactTarget}
               rel={contactTarget === "_blank" ? "noopener noreferrer" : undefined}
-              className="px-4 py-2 rounded-full border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:text-white hover:border-slate-600 text-xs font-semibold transition-all shadow-sm"
+              className="px-4 py-2 rounded-full border border-slate-300 bg-white text-slate-700 hover:text-slate-900 hover:border-slate-400 text-xs font-semibold transition-all shadow-xs"
             >
               {contactText}
             </a>
             <button
               onClick={onCtaClick}
-              className="px-5 sm:px-6 py-2 rounded-full bg-gradient-to-r from-[#00ffc6] via-cyan-400 to-sky-400 text-slate-950 text-xs sm:text-sm font-black hover:opacity-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(0,255,198,0.4)] hover:shadow-[0_0_30px_rgba(0,255,198,0.65)] hover:scale-[1.02] active:scale-[0.98]"
+              className="px-5 sm:px-6 py-2 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white text-xs sm:text-sm font-black hover:opacity-95 transition-all flex items-center gap-2 shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <span>{ctaText}</span>
-              <Sparkles className="w-4 h-4 text-slate-950" />
+              <Sparkles className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
 
         <motion.div
           style={{ opacity: lineOpacity }}
-          className="w-full mt-4 border-b border-cyan-500/20"
+          className="w-full mt-4 border-b border-slate-200"
         />
       </div>
     </nav>
@@ -881,16 +881,16 @@ export function RobotHero({
   const containerRef = useRef<HTMLElement>(null);
 
   const entorno = {
-    fondoArriba: "#040814",
-    fondoMedio: "#070d1e",
-    fondoAbajo: "#050a18",
-    luzAmbiente: 1.1,
-    luzPrincipal: 2.8,
-    luzPrincipalColor: "#00ffc6",
-    luzRelleno: 2.0,
+    fondoArriba: "#ffffff",
+    fondoMedio: "#f8fafc",
+    fondoAbajo: "#f1f5f9",
+    luzAmbiente: 1.6,
+    luzPrincipal: 2.2,
+    luzPrincipalColor: "#0284c7",
+    luzRelleno: 1.8,
     luzRellenoColor: "#38bdf8",
-    sombraOpacidad: 0.75,
-    sombraBlur: 2.0,
+    sombraOpacidad: 0.35,
+    sombraBlur: 2.2,
   };
 
   return (
@@ -898,14 +898,14 @@ export function RobotHero({
       ref={containerRef}
       className="relative w-full min-h-screen overflow-hidden flex flex-col justify-between"
       style={{
-        background: `radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 198, 0.12), transparent), radial-gradient(ellipse 60% 50% at 50% 110%, rgba(56, 189, 248, 0.08), transparent), linear-gradient(to bottom, #040814 0%, #070d1e 50%, #050a18 100%)`,
+        background: `radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14, 165, 233, 0.12), transparent), radial-gradient(ellipse 60% 50% at 50% 110%, rgba(99, 102, 241, 0.08), transparent), linear-gradient(to bottom, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)`,
       }}
     >
       {/* Background Cyber Grid subtle pattern */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-20"
+        className="absolute inset-0 pointer-events-none opacity-40"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 255, 198, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 198, 0.07) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px)`,
           backgroundSize: "48px 48px",
         }}
       />
@@ -917,16 +917,16 @@ export function RobotHero({
       >
         <div className="relative flex flex-col items-center select-none -translate-y-8">
           <h1
-            className="font-sans font-black select-none whitespace-nowrap tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-white/10 via-cyan-400/5 to-transparent"
+            className="font-sans font-black select-none whitespace-nowrap tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-slate-900/[0.08] via-sky-500/[0.04] to-transparent"
             style={{
               fontSize: "clamp(5rem, 18vw, 15rem)",
               lineHeight: 1,
-              textShadow: "0 0 80px rgba(0, 255, 198, 0.12)",
+              textShadow: "0 0 80px rgba(14, 165, 233, 0.08)",
             }}
           >
             {backgroundText}
           </h1>
-          <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.4em] text-cyan-400/30 -mt-4 sm:-mt-8">
+          <div className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.4em] text-sky-700/40 -mt-4 sm:-mt-8">
             Intelligent Document Assistant
           </div>
         </div>
@@ -935,7 +935,7 @@ export function RobotHero({
       {/* 3D Interactive Robot Canvas */}
       <div className="absolute inset-0 z-10">
         <Canvas shadows camera={{ position: [0, 0.2, 6], fov: 40 }}>
-          <ambientLight intensity={entorno.luzAmbiente} color="#c7d2fe" />
+          <ambientLight intensity={entorno.luzAmbiente} color="#ffffff" />
 
           <directionalLight
             position={[0, 6, 3]}
@@ -960,7 +960,7 @@ export function RobotHero({
           <directionalLight
             position={[0, -2, -3]}
             intensity={1.2}
-            color="#00ffc6"
+            color="#38bdf8"
           />
 
           <Environment preset="studio" blur={0.5} />
@@ -973,7 +973,7 @@ export function RobotHero({
               resolution={1024}
               blur={entorno.sombraBlur}
               far={2.5}
-              color="#00ffc6"
+              color="#0284c7"
             />
             <RobotPrototype
               neckParams={{
@@ -1018,16 +1018,16 @@ export function RobotHero({
           <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 pointer-events-auto">
             {/* Left Hero Copy */}
             <div className="max-w-xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-3 backdrop-blur-md shadow-[0_0_15px_rgba(0,255,198,0.15)]">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-xs font-semibold mb-3 backdrop-blur-md shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
                 <span>Autonomous RAG Engine &amp; 3D Neural Mascot</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1] mb-3">
-                Intelligent Document Assistant with <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500">Exact Citations</span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.1] mb-3">
+                Intelligent Document Assistant with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500">Exact Citations</span>
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-5">
                 Interrogate multi-page PDFs, technical manuals, and research papers with zero hallucination. Powered by NumPy vector embeddings, sub-second semantic retrieval, and exact page-level coordinate references.
               </p>
 
@@ -1035,7 +1035,7 @@ export function RobotHero({
                 <button
                   type="button"
                   onClick={onCtaClick}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#00ffc6] via-cyan-400 to-sky-400 text-slate-950 font-black text-sm shadow-[0_0_25px_rgba(0,255,198,0.45)] hover:shadow-[0_0_35px_rgba(0,255,198,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 group cursor-pointer"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white font-black text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 group cursor-pointer"
                 >
                   <span>Explore RAG App</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -1043,10 +1043,10 @@ export function RobotHero({
 
                 <a
                   href="#features"
-                  className="px-5 py-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-sm transition-all flex items-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm transition-all flex items-center gap-2 shadow-xs"
                 >
                   <span>View Features</span>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-slate-500" />
                 </a>
               </div>
             </div>
@@ -1054,21 +1054,21 @@ export function RobotHero({
             {/* Right Interactive Hints & Feature Badges */}
             <div className="flex flex-col items-center lg:items-end gap-3 text-right">
               {/* Interactive hint */}
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-cyan-500/20 text-[11px] text-cyan-300 font-mono shadow-lg backdrop-blur-md">
-                <Heart className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-slate-200 text-[11px] text-slate-700 font-mono shadow-sm backdrop-blur-md">
+                <Heart className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
                 <span>Move cursor to guide robot • Click robot for heart eyes</span>
               </div>
 
               {/* Feature chips */}
-              <div className="flex flex-wrap justify-center lg:justify-end gap-2 text-[11px] font-semibold text-slate-300">
-                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
-                  <span className="text-emerald-400">●</span> 100% Grounded Citations
+              <div className="flex flex-wrap justify-center lg:justify-end gap-2 text-[11px] font-semibold text-slate-600">
+                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-emerald-500">●</span> 100% Grounded Citations
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
-                  <span className="text-cyan-400">●</span> Sub-second NumPy Search
+                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-blue-500">●</span> Sub-second NumPy Search
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300 flex items-center gap-1.5">
-                  <span className="text-sky-400">●</span> Exact Page Coordinates
+                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-indigo-500">●</span> Exact Page Coordinates
                 </span>
               </div>
             </div>

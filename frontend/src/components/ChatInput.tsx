@@ -41,12 +41,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className="w-full relative">
-      <div className="relative rounded-2xl bg-[#091124] border border-slate-800 focus-within:border-sky-500/60 focus-within:ring-1 focus-within:ring-sky-500/30 transition-all shadow-2xl">
+      <div className="relative rounded-2xl bg-white border border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all shadow-md">
         {/* Active Doc Filter indicator if specified */}
         {activeDocName && (
-          <div className="px-4 pt-2.5 pb-1 flex items-center gap-1.5 text-[11px] text-sky-400 font-medium">
+          <div className="px-4 pt-2.5 pb-1 flex items-center gap-1.5 text-[11px] text-blue-600 font-medium">
             <Sparkles className="w-3 h-3" />
-            <span>Targeting: <strong className="text-white">{activeDocName}</strong></span>
+            <span>Targeting: <strong className="text-slate-900">{activeDocName}</strong></span>
           </div>
         )}
 
@@ -59,19 +59,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full bg-transparent px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none leading-relaxed disabled:opacity-50"
+          className="w-full bg-transparent px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none leading-relaxed disabled:opacity-50"
           style={{ minHeight: "52px", maxHeight: "160px" }}
         />
 
         {/* Bottom Actions Bar inside input */}
         <div className="px-3 pb-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[11px] text-slate-500 hidden sm:flex">
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 hidden sm:flex">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">Enter</kbd> to ask
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] border border-slate-200">Enter</kbd> to ask
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">Shift+Enter</kbd> for newline
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] border border-slate-200">Shift+Enter</kbd> for newline
             </span>
           </div>
 
@@ -80,7 +80,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
               disabled={!value.trim() || isLoading || disabled}
               onClick={onSubmit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs transition-all shadow-sm shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
             >
               {isLoading ? (
                 <>
