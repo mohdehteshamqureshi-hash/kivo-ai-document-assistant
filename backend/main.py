@@ -192,11 +192,20 @@ def is_refusal_answer(answer: str, model_used: str = "") -> bool:
         "insufficient information to address",
         "provided context does not contain",
         "supplied documents do not contain",
+        "supplied document does not contain",
+        "supplied document does not",
         "provided documents do not contain",
+        "provided document does not contain",
+        "provided document does not",
         "retrieved context does not contain",
         "no information provided about",
         "not mentioned in the provided context",
         "not mentioned in the provided documents",
+        "not mentioned in the provided document",
+        "does not mention",
+        "do not mention",
+        "not explicitly mention",
+        "does not explicitly mention",
     ]
     return any(p in lower for p in refusal_phrases)
 

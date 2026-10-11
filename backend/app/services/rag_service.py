@@ -143,6 +143,10 @@ class RAGService:
             or "not contain sufficient" in lower_ans
             or "cannot answer" in lower_ans
             or "insufficient information" in lower_ans
+            or "supplied document does not" in lower_ans
+            or "provided document does not" in lower_ans
+            or "does not mention" in lower_ans
+            or "does not explicitly mention" in lower_ans
         )
         answer_status = "insufficient_information" if is_refusal else "answered"
         final_citations = [] if is_refusal else citations

@@ -72,7 +72,9 @@ class LLMService:
         refusal_markers = [
             "cannot answer", "unable to answer", "not contain sufficient",
             "not contain enough", "insufficient information", "supplied documents do not",
-            "provided context does not", "provided documents do not",
+            "supplied document does not", "provided context does not", "provided documents do not",
+            "provided document does not", "does not mention", "do not mention",
+            "not explicitly mention", "does not explicitly mention",
         ]
         if any(marker in lower_ans for marker in refusal_markers):
             return answer_text
