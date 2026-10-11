@@ -1,10 +1,11 @@
-import { getAllChunks } from "./utils/storage";
+import { getAllChunks, initStorage } from "./utils/storage";
 import { generateEmbedding } from "./utils/embeddings";
 import { rankChunks } from "./utils/vectorMath";
 import { generateGroundedAnswer } from "./utils/groqService";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (event: any) => {
+  initStorage(event);
   const method = (event.httpMethod || "POST").toUpperCase();
   const headers = {
     "Content-Type": "application/json",
@@ -46,7 +47,7 @@ export const handler = async (event: any) => {
     const queryVector = await generateEmbedding(queryText);
 
     const targetDocIds = targetDocId ? [targetDocId] : undefined;
-    const allChunks = await getAllChunks(targetDocIds);
+    const allChunks = await getAllChunks(targetDocIds, event);
 
     const rankedChunks = rankChunks(queryVector, allChunks, topK, 0.15);
     const retrievalTimeMs = Math.round((performance.now() - retrievalStart) * 100) / 100;

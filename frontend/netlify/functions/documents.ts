@@ -4,6 +4,7 @@ import {
   saveDocument,
   deleteDocument,
   clearAllDocuments,
+  initStorage,
   type DocumentItem,
   type Chunk,
 } from "./utils/storage";
@@ -88,6 +89,7 @@ function parseMultipart(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (event: any) => {
+  initStorage(event);
   const method = (event.httpMethod || "GET").toUpperCase();
   const path = event.path || "";
   const headers = {
@@ -103,7 +105,7 @@ export const handler = async (event: any) => {
 
   // 1. GET /documents — List all indexed documents
   if (method === "GET") {
-    const docs = await listDocuments();
+    const docs = await listDocuments(event);
     return {
       statusCode: 200,
       headers,
@@ -173,7 +175,7 @@ export const handler = async (event: any) => {
         status: "ready",
       };
 
-      await saveDocument(docMeta, chunks);
+      await saveDocument(docMeta, chunks, event);
 
       return {
         statusCode: 201,
@@ -199,7 +201,7 @@ export const handler = async (event: any) => {
     const docId = queryDocId || (lastPart !== "documents" ? lastPart : null);
 
     if (docId) {
-      const deleted = await deleteDocument(docId);
+      const deleted = await deleteDocument(docId, event);
       return {
         statusCode: 200,
         headers,
@@ -212,7 +214,7 @@ export const handler = async (event: any) => {
     }
 
     // Clear all documents
-    await clearAllDocuments();
+    await clearAllDocuments(event);
     return {
       statusCode: 200,
       headers,

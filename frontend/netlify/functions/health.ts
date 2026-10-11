@@ -1,9 +1,11 @@
-import { getStorageDiagnostics } from "./utils/storage";
+import { getStorageDiagnostics, initStorage } from "./utils/storage";
 
 const startTime = Date.now();
 
-export const handler = async () => {
-  const { docCount, chunkCount } = await getStorageDiagnostics();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const handler = async (event?: any) => {
+  initStorage(event);
+  const { isNetlify, storageBackend, docCount, chunkCount } = await getStorageDiagnostics(event);
   const uptime = Math.floor((Date.now() - startTime) / 1000);
 
   const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
@@ -21,6 +23,8 @@ export const handler = async () => {
     body: JSON.stringify({
       status: "healthy",
       version: "2.1.0",
+      storage_backend: storageBackend,
+      is_persistent: isNetlify,
       documents_count: docCount,
       total_chunks: chunkCount,
       vocabulary_size: 384,

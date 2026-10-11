@@ -1,4 +1,4 @@
-import { getStore } from "@netlify/blobs";
+import { connectLambda, getStore } from "@netlify/blobs";
 
 export interface DocumentItem {
   id: string;
@@ -25,35 +25,63 @@ const localMemoryStore = {
   chunks: new Map<string, Chunk[]>(),
 };
 
-function getBlobStores() {
+/**
+ * Initializes Netlify Blobs execution environment in Lambda compatibility mode.
+ * Must be called at the start of any Netlify Function handler with the event object.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function initStorage(event?: any): boolean {
+  if (event && event.blobs) {
+    try {
+      connectLambda(event);
+      return true;
+    } catch (err) {
+      console.warn("Netlify Blobs connectLambda failed:", err);
+      return false;
+    }
+  }
+  return false;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getBlobStores(event?: any) {
+  if (event) {
+    initStorage(event);
+  }
   try {
-    const metaStore = getStore({ name: "kivo-metadata", consistency: "strong" });
-    const chunksStore = getStore({ name: "kivo-chunks", consistency: "strong" });
-    return { metaStore, chunksStore, isNetlify: true };
-  } catch {
-    // MissingBlobsEnvironmentError in local environment without Netlify CLI
-    return { metaStore: null, chunksStore: null, isNetlify: false };
+    const metaStore = getStore({ name: "kivo-metadata" });
+    const chunksStore = getStore({ name: "kivo-chunks" });
+    return { metaStore, chunksStore, isNetlify: true, error: null };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // MissingBlobsEnvironmentError in local environment without Netlify CLI / Blobs context
+    return { metaStore: null, chunksStore: null, isNetlify: false, error: msg };
   }
 }
 
-export async function listDocuments(): Promise<DocumentItem[]> {
-  const { metaStore, isNetlify } = getBlobStores();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function listDocuments(event?: any): Promise<DocumentItem[]> {
+  const { metaStore, isNetlify, error } = getBlobStores(event);
   if (isNetlify && metaStore) {
     try {
       const data = await metaStore.get("index", { type: "json" });
       return (data as DocumentItem[]) || [];
-    } catch {
-      // Fallback if key does not exist yet
+    } catch (err) {
+      console.warn("Netlify Blobs listDocuments read error, falling back to empty:", err);
       return [];
     }
+  }
+  if (error) {
+    // Expected in offline test suites without Blobs context
   }
   return Array.from(localMemoryStore.documents.values()).sort(
     (a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()
   );
 }
 
-export async function saveDocument(doc: DocumentItem, chunks: Chunk[]): Promise<void> {
-  const { metaStore, chunksStore, isNetlify } = getBlobStores();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function saveDocument(doc: DocumentItem, chunks: Chunk[], event?: any): Promise<void> {
+  const { metaStore, chunksStore, isNetlify, error } = getBlobStores(event);
 
   // Save to memory store
   localMemoryStore.documents.set(doc.id, doc);
@@ -62,27 +90,30 @@ export async function saveDocument(doc: DocumentItem, chunks: Chunk[]): Promise<
   if (isNetlify && metaStore && chunksStore) {
     try {
       // Update metadata index
-      const existing = await listDocuments();
+      const existing = await listDocuments(event);
       const updated = [doc, ...existing.filter((d) => d.id !== doc.id)];
       await metaStore.setJSON("index", updated);
 
       // Save document chunks
       await chunksStore.setJSON(`chunks:${doc.id}`, chunks);
     } catch (err) {
-      console.warn("Netlify Blobs save fallback to memory:", err);
+      console.warn("Netlify Blobs save error:", err);
     }
+  } else {
+    console.warn(`Netlify Blobs inactive (${error || "MissingBlobsEnvironment"}). Document '${doc.id}' saved to in-memory store only.`);
   }
 }
 
-export async function deleteDocument(docId: string): Promise<boolean> {
-  const { metaStore, chunksStore, isNetlify } = getBlobStores();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function deleteDocument(docId: string, event?: any): Promise<boolean> {
+  const { metaStore, chunksStore, isNetlify } = getBlobStores(event);
   const hadDoc = localMemoryStore.documents.has(docId);
   localMemoryStore.documents.delete(docId);
   localMemoryStore.chunks.delete(docId);
 
   if (isNetlify && metaStore && chunksStore) {
     try {
-      const existing = await listDocuments();
+      const existing = await listDocuments(event);
       const updated = existing.filter((d) => d.id !== docId);
       await metaStore.setJSON("index", updated);
       await chunksStore.delete(`chunks:${docId}`);
@@ -94,8 +125,9 @@ export async function deleteDocument(docId: string): Promise<boolean> {
   return hadDoc;
 }
 
-export async function clearAllDocuments(): Promise<void> {
-  const { metaStore, chunksStore, isNetlify } = getBlobStores();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function clearAllDocuments(event?: any): Promise<void> {
+  const { metaStore, chunksStore, isNetlify } = getBlobStores(event);
   localMemoryStore.documents.clear();
   localMemoryStore.chunks.clear();
 
@@ -109,9 +141,10 @@ export async function clearAllDocuments(): Promise<void> {
   }
 }
 
-export async function getAllChunks(targetDocIds?: string[]): Promise<Chunk[]> {
-  const { chunksStore, isNetlify } = getBlobStores();
-  const docs = await listDocuments();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getAllChunks(targetDocIds?: string[], event?: any): Promise<Chunk[]> {
+  const { chunksStore, isNetlify } = getBlobStores(event);
+  const docs = await listDocuments(event);
   const allowedDocIds = targetDocIds && targetDocIds.length > 0
     ? new Set(targetDocIds)
     : null;
@@ -130,8 +163,8 @@ export async function getAllChunks(targetDocIds?: string[]): Promise<Chunk[]> {
           allChunks.push(...(docChunks as Chunk[]));
           continue;
         }
-      } catch {
-        // Fall back to memory check
+      } catch (err) {
+        console.warn(`Netlify Blobs read chunks error for doc '${doc.id}':`, err);
       }
     }
     const memChunks = localMemoryStore.chunks.get(doc.id);
@@ -143,11 +176,24 @@ export async function getAllChunks(targetDocIds?: string[]): Promise<Chunk[]> {
   return allChunks;
 }
 
-export async function getStorageDiagnostics() {
-  const docs = await listDocuments();
-  const chunks = await getAllChunks();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getStorageDiagnostics(event?: any) {
+  const { isNetlify, error } = getBlobStores(event);
+  const docs = await listDocuments(event);
+  const chunks = await getAllChunks(undefined, event);
   return {
+    isNetlify,
+    storageBackend: isNetlify ? "Netlify Blobs (Persistent)" : "In-Memory Map (Ephemeral Fallback)",
+    error: error || null,
     docCount: docs.length,
     chunkCount: chunks.length,
   };
+}
+
+/**
+ * Testing helper: clears in-memory maps to simulate cross-container or cold-start isolation.
+ */
+export function _resetLocalMemoryStoreForTesting(): void {
+  localMemoryStore.documents.clear();
+  localMemoryStore.chunks.clear();
 }
