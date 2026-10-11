@@ -143,7 +143,7 @@ export const ragApi = {
   /**
    * Perform RAG semantic query with NumPy cosine vector search
    */
-  async queryChat(queryText: string, topK: number = 4, docId?: string): Promise<QueryResponse> {
+  async queryChat(queryText: string, topK: number = 8, docId?: string): Promise<QueryResponse> {
     const trimmed = queryText.trim();
     if (!trimmed) {
       throw new ApiError("Query cannot be empty.");

@@ -83,7 +83,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 group ${
+        className={`relative border-2 border-dashed rounded-2xl p-4 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 group ${
           isDragging
             ? "border-blue-500 bg-blue-50/60 shadow-md shadow-blue-500/10"
             : disabled
@@ -102,8 +102,8 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-sm font-semibold text-slate-800">
+        <div className="flex flex-col items-center gap-1 max-w-full px-1">
+          <p className="text-sm font-semibold text-slate-800 break-words">
             {isUploading ? (
               <span className="text-blue-600 animate-pulse">
                 Parsing PDF &amp; Indexing Vectors into NumPy Engine...
@@ -115,14 +115,14 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
               </>
             )}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 max-w-sm">
             Supports research papers, textbooks, reports, and manuals up to 25 MB
           </p>
         </div>
 
-        <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
-          <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-          <span>Page-level metadata preserved for exact citations</span>
+        <div className="mt-3 inline-flex items-center justify-center text-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200 max-w-full">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+          <span className="truncate">Page metadata preserved for citations</span>
         </div>
       </div>
 

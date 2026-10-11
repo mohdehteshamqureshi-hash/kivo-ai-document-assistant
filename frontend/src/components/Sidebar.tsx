@@ -49,17 +49,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-80 bg-white border-r border-slate-200/90 flex flex-col transition-transform duration-300 ease-in-out shadow-xs ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-[280px] sm:w-80 max-w-[88vw] bg-white border-r border-slate-200/90 flex flex-col transition-transform duration-300 ease-in-out shadow-xs ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
           <BrandLogo size="md" showTagline={true} />
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+            className="lg:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+            title="Close Sidebar"
           >
             <X className="w-5 h-5" />
           </button>

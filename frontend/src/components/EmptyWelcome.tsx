@@ -24,22 +24,22 @@ export const EmptyWelcome: React.FC<EmptyWelcomeProps> = ({
       ];
 
   return (
-    <div className="flex flex-col items-center justify-center text-center py-6 px-4 max-w-3xl mx-auto">
+    <div className="flex flex-col items-center justify-center text-center py-4 sm:py-6 px-2 sm:px-4 max-w-3xl mx-auto w-full">
       {/* Badge */}
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold mb-4 shadow-xs">
-        <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-        <span>Kivo AI RAG Engine • Sub-millisecond Vector Retrieval</span>
+      <div className="inline-flex items-center justify-center text-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11px] sm:text-xs font-semibold mb-3 sm:mb-4 shadow-xs max-w-full">
+        <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+        <span className="truncate">Kivo AI RAG Engine • NumPy Vector Retrieval</span>
       </div>
 
       {/* Main Title & Tagline */}
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-2">
+      <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-2 break-words">
         Your Knowledge.{" "}
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500">
           One Conversation.
         </span>
       </h1>
 
-      <p className="text-sm sm:text-base text-slate-600 max-w-xl mb-8 leading-relaxed">
+      <p className="text-xs sm:text-base text-slate-600 max-w-xl mb-6 sm:mb-8 leading-relaxed">
         Upload PDF manuals, papers, or textbooks. Interrogate your documents with instant,
         mathematically grounded answers and exact page citations.
       </p>
@@ -90,7 +90,7 @@ export const EmptyWelcome: React.FC<EmptyWelcomeProps> = ({
               key={idx}
               type="button"
               onClick={() => onSelectPrompt(prompt)}
-              className="flex items-center justify-between p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 text-left text-xs text-slate-700 hover:text-slate-900 transition-all shadow-xs group cursor-pointer"
+              className="flex items-center justify-between p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 text-left text-xs text-slate-700 hover:text-slate-900 transition-all shadow-xs group cursor-pointer min-h-[44px]"
             >
               <span className="truncate pr-2">{prompt}</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 flex-shrink-0 transition-colors" />

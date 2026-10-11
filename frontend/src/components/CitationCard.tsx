@@ -17,9 +17,9 @@ export const CitationCard: React.FC<CitationCardProps> = ({ citation, index }) =
       <button
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-2.5 px-3 text-left hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer"
+        className="w-full flex items-center justify-between gap-1.5 p-2.5 px-3 text-left hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer min-h-[44px]"
       >
-        <div className="flex items-center gap-2 min-w-0 pr-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 pr-1">
           <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center flex-shrink-0 text-xs font-bold">
             {index + 1}
           </div>
@@ -28,20 +28,21 @@ export const CitationCard: React.FC<CitationCardProps> = ({ citation, index }) =
             {citation.file}
           </span>
           <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-semibold flex-shrink-0">
-            Page {citation.page}
+            <span className="sm:hidden">p.{citation.page}</span>
+            <span className="hidden sm:inline">Page {citation.page}</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {matchPercent > 0 && (
-            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-              {matchPercent}% relevance
+            <span className="text-[10px] font-mono font-semibold px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+              {matchPercent}%
             </span>
           )}
           {isExpanded ? (
-            <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronUp className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           )}
         </div>
       </button>

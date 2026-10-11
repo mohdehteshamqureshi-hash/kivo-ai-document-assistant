@@ -34,9 +34,20 @@ function ResponsiveGroup({
   children: React.ReactNode;
   scale?: number;
 }) {
-  const { viewport } = useThree();
-  const s = Math.min(1.1, viewport.width / 3.5) * scale;
-  return <group scale={s}>{children}</group>;
+  const { viewport, size } = useThree();
+  const isMobile = size.width < 768;
+  const isSmallMobile = size.width < 450;
+
+  // Responsive scale & position: on mobile, position robot higher up so it floats
+  // proudly in the hero stage area above the headline without being obscured
+  const responsiveScale = (isSmallMobile ? 0.78 : isMobile ? 0.9 : Math.min(1.1, viewport.width / 3.5)) * scale;
+  const yOffset = isSmallMobile ? 0.55 : isMobile ? 0.35 : 0;
+
+  return (
+    <group position={[0, yOffset, 0]} scale={responsiveScale}>
+      {children}
+    </group>
+  );
 }
 
 function GlassCapsule({
@@ -243,11 +254,15 @@ function RobotEye({
     normalEyesRef.current.visible = !isHeart;
     heartEyeRef.current.visible = isHeart;
 
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const cycle = clock.getElapsedTime() % blinkCycle;
 
     let targetScaleY = 1;
 
-    if (cycle < blinkDuration && !isHeart) {
+    if (!prefersReducedMotion && cycle < blinkDuration && !isHeart) {
       const progress = cycle / blinkDuration;
       const blinkClose = Math.sin(progress * Math.PI);
 
@@ -255,10 +270,14 @@ function RobotEye({
     }
 
     if (isHeart && heartEyeRef.current) {
-      // Animated, rhythmic heartbeat pulse: double-beat lub-dub cycle
-      const t = clock.getElapsedTime() * 11;
-      const beat = 1 + 0.24 * Math.pow(Math.sin(t), 4);
-      heartEyeRef.current.scale.set(beat, beat, beat);
+      if (prefersReducedMotion) {
+        heartEyeRef.current.scale.set(1.1, 1.1, 1.1);
+      } else {
+        // Animated, rhythmic heartbeat pulse: double-beat lub-dub cycle
+        const t = clock.getElapsedTime() * 11;
+        const beat = 1 + 0.24 * Math.pow(Math.sin(t), 4);
+        heartEyeRef.current.scale.set(beat, beat, beat);
+      }
     }
 
     groupRef.current.scale.set(scale, scale * targetScaleY, scale);
@@ -464,12 +483,12 @@ function RobotPrototype({
   };
 
   const config = {
-    moveSpeed: 0.35,
-    bodyRotSpeed: 10.0,
-    headRotSpeed: 20.0,
-    bodyTiltX: 0.0,
+    moveSpeed: 3.2,
+    bodyRotSpeed: 8.0,
+    headRotSpeed: 14.0,
+    bodyTiltX: 0.12,
     bodyTiltY: 0.95,
-    headLookX: 0.3,
+    headLookX: 0.45,
     headLookY: 1.8,
   };
 
@@ -477,25 +496,51 @@ function RobotPrototype({
     if (!bodyRef.current || !headRef.current) return;
 
     const dt = Math.min(delta, 0.1);
+    const time = state.clock.getElapsedTime();
 
-    const tx = state.pointer.x;
-    const ty = state.pointer.y;
+    // Respect accessibility prefers-reduced-motion
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const maxMoveX = state.viewport.width / 3.5;
+    // Organic idle floating hover and ambient breathing motion
+    // Operates continuously even when pointer is stationary or on touchscreens
+    const floatY = prefersReducedMotion ? 0 : Math.sin(time * 1.8) * 0.07;
+    const ambientSwayZ = prefersReducedMotion ? 0 : Math.sin(time * 1.2) * 0.025;
+    const ambientBreathX = prefersReducedMotion ? 0 : Math.cos(time * 1.5) * 0.02;
+    const ambientHeadLookY = prefersReducedMotion ? 0 : Math.sin(time * 0.9) * 0.06;
+
+    // Cheerful tap/click bounce when heart eyes are active (suppressed under reduced-motion)
+    const loveBounce =
+      !prefersReducedMotion && isLovedRef.current
+        ? Math.sin(time * 14) * 0.04
+        : 0;
+
+    // Pointer-following motion: disabled under reduced-motion to prevent vestibular discomfort
+    const tx = prefersReducedMotion ? 0 : state.pointer.x;
+    const ty = prefersReducedMotion ? 0 : state.pointer.y;
+
+    const maxMoveX = state.viewport.width / 3.8;
     const targetPosX = tx * maxMoveX;
+
+    // Smooth position interpolation (X translation with cursor, Y floating bob)
     bodyRef.current.position.x = THREE.MathUtils.lerp(
       bodyRef.current.position.x,
       targetPosX,
       config.moveSpeed * dt,
     );
+    bodyRef.current.position.y = THREE.MathUtils.lerp(
+      bodyRef.current.position.y,
+      -0.3 + floatY + loveBounce,
+      5.0 * dt,
+    );
 
     const relativeX = tx - bodyRef.current.position.x / 2.5;
 
-    const bodyTargetRotY = -relativeX * config.bodyTiltY;
-
-    const bodyTargetRotX = relativeX * relativeX * config.bodyTiltX - ty * 0.25;
-
-    const bodyTargetRotZ = -relativeX * 0.15;
+    const bodyTargetRotY = -relativeX * config.bodyTiltY + ambientHeadLookY * 0.5;
+    const bodyTargetRotX =
+      relativeX * relativeX * config.bodyTiltX - ty * 0.25 + ambientBreathX;
+    const bodyTargetRotZ = -relativeX * 0.15 + ambientSwayZ;
 
     bodyRef.current.rotation.y = THREE.MathUtils.lerp(
       bodyRef.current.rotation.y,
@@ -513,8 +558,8 @@ function RobotPrototype({
       config.bodyRotSpeed * dt,
     );
 
-    const headTargetRotY = relativeX * config.headLookY;
-    const headTargetRotX = -ty * config.headLookX;
+    const headTargetRotY = relativeX * config.headLookY + ambientHeadLookY;
+    const headTargetRotX = -ty * config.headLookX + ambientBreathX * 0.8;
 
     headRef.current.rotation.y = THREE.MathUtils.lerp(
       headRef.current.rotation.y,
@@ -750,14 +795,16 @@ function AntennaNavbar({
   const lineOpacity = useTransform(scrollY, [0, 50], [1, 0]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full pt-4 sm:pt-6 px-4 sm:px-8 pointer-events-none">
+    <nav className="sticky top-0 z-50 w-full pt-3 sm:pt-6 px-3 sm:px-8 pointer-events-none">
       <div className="w-full max-w-[1400px] mx-auto flex flex-col relative pointer-events-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between relative gap-4 lg:gap-0 bg-white/85 backdrop-blur-xl border border-slate-200/90 rounded-2xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg shadow-slate-200/50">
-          {/* Left: Brand Logo & Links */}
-          <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-5 z-20">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between relative gap-2 sm:gap-4 lg:gap-0 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-2xl lg:rounded-full px-3.5 sm:px-6 py-2 sm:py-3 shadow-lg shadow-slate-200/50">
+          {/* Top/Main Row: Logo + Primary CTA on mobile, or full left side on desktop */}
+          <div className="flex items-center justify-between lg:justify-start gap-3 sm:gap-5 z-20">
             <BrandLogo size="sm" showTagline={false} />
             <div className="h-5 w-px bg-slate-200 hidden md:block" />
-            <div className="flex items-center gap-1 sm:gap-2">
+
+            {/* Desktop Left Nav Links */}
+            <div className="hidden lg:flex items-center gap-1 sm:gap-2">
               {leftItems.map((item, idx) => {
                 const isSelected = item.active || hoveredIndex === idx;
                 const linkClass = `relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors overflow-hidden cursor-pointer ${
@@ -809,9 +856,52 @@ function AntennaNavbar({
                 );
               })}
             </div>
+
+            {/* Mobile Header Right CTA */}
+            <div className="flex lg:hidden items-center gap-2">
+              <button
+                type="button"
+                onClick={onCtaClick}
+                className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white text-xs font-bold shadow-sm shadow-blue-500/25 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+              >
+                <span>{ctaText}</span>
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </button>
+            </div>
           </div>
 
-          {/* Center Mascot Emblem */}
+          {/* Mobile Navigation Links Row (compact pill row for mobile) */}
+          <div className="flex lg:hidden items-center justify-start sm:justify-center gap-1.5 pt-1.5 pb-0.5 border-t border-slate-100/80 overflow-x-auto max-w-full px-1">
+            {leftItems.map((item) => {
+              const linkClass = `px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap min-h-[32px] inline-flex items-center ${
+                item.active
+                  ? "bg-blue-50 text-blue-700 border border-blue-200"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`;
+              if (item.onClick) {
+                return (
+                  <button key={item.label} type="button" onClick={item.onClick} className={linkClass}>
+                    {item.label}
+                  </button>
+                );
+              }
+              return (
+                <a key={item.label} href={item.href || "#"} target={item.target} className={linkClass}>
+                  {item.label}
+                </a>
+              );
+            })}
+            <a
+              href={contactHref}
+              target={contactTarget}
+              rel={contactTarget === "_blank" ? "noopener noreferrer" : undefined}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-900 whitespace-nowrap min-h-[32px] inline-flex items-center"
+            >
+              {contactText}
+            </a>
+          </div>
+
+          {/* Center Mascot Emblem (Desktop only) */}
           <div 
             onClick={onCtaClick}
             className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center pointer-events-auto cursor-pointer group z-10"
@@ -830,8 +920,8 @@ function AntennaNavbar({
             </div>
           </div>
 
-          {/* Right Actions: API Docs & Explore RAG App button */}
-          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-2 sm:gap-3 w-full lg:w-auto z-20">
+          {/* Desktop Right Actions */}
+          <div className="hidden lg:flex justify-end items-center gap-2 sm:gap-3 w-full lg:w-auto z-20">
             <a
               href={contactHref}
               target={contactTarget}
@@ -852,7 +942,7 @@ function AntennaNavbar({
 
         <motion.div
           style={{ opacity: lineOpacity }}
-          className="w-full mt-4 border-b border-slate-200"
+          className="w-full mt-3 sm:mt-4 border-b border-slate-200"
         />
       </div>
     </nav>
@@ -1014,28 +1104,28 @@ export function RobotHero({
           onCtaClick={onCtaClick}
         />
 
-        <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 flex-1 flex flex-col justify-end pb-8 sm:pb-12 pointer-events-none">
-          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-6 pointer-events-auto">
+        <div className="w-full max-w-[1400px] mx-auto px-3.5 sm:px-8 flex-1 flex flex-col justify-end pb-6 sm:pb-12 pointer-events-none">
+          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-5 sm:gap-6 pointer-events-auto">
             {/* Left Hero Copy */}
-            <div className="max-w-xl text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-xs font-semibold mb-3 backdrop-blur-md shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
-                <span>Autonomous RAG Engine &amp; 3D Neural Mascot</span>
+            <div className="max-w-xl text-center lg:text-left w-full">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:py-1.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800 text-[10px] sm:text-xs font-semibold mb-2 sm:mb-3 backdrop-blur-md shadow-xs max-w-full">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping flex-shrink-0" />
+                <span className="truncate">Autonomous RAG Engine &amp; 3D Neural Mascot</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.1] mb-3">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight sm:leading-[1.1] mb-2 sm:mb-3 break-words">
                 Intelligent Document Assistant with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500">Exact Citations</span>
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-5">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 sm:mb-5 max-w-xl mx-auto lg:mx-0">
                 Interrogate multi-page PDFs, technical manuals, and research papers with zero hallucination. Powered by NumPy vector embeddings, sub-second semantic retrieval, and exact page-level coordinate references.
               </p>
 
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={onCtaClick}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white font-black text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 group cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white font-black text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer min-h-[44px]"
                 >
                   <span>Explore RAG App</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -1043,7 +1133,7 @@ export function RobotHero({
 
                 <a
                   href="#features"
-                  className="px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm transition-all flex items-center gap-2 shadow-xs"
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-xs min-h-[44px]"
                 >
                   <span>View Features</span>
                   <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -1052,22 +1142,22 @@ export function RobotHero({
             </div>
 
             {/* Right Interactive Hints & Feature Badges */}
-            <div className="flex flex-col items-center lg:items-end gap-3 text-right">
+            <div className="flex flex-col items-center lg:items-end gap-2.5 sm:gap-3 text-center lg:text-right w-full lg:w-auto">
               {/* Interactive hint */}
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-slate-200 text-[11px] text-slate-700 font-mono shadow-sm backdrop-blur-md">
-                <Heart className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
-                <span>Move cursor to guide robot • Click robot for heart eyes</span>
+              <div className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-slate-200 text-[10px] sm:text-[11px] text-slate-700 font-mono shadow-xs backdrop-blur-md max-w-full">
+                <Heart className="w-3.5 h-3.5 text-rose-500 animate-pulse flex-shrink-0" />
+                <span className="truncate">Move cursor or touch robot • Tap for heart eyes</span>
               </div>
 
               {/* Feature chips */}
-              <div className="flex flex-wrap justify-center lg:justify-end gap-2 text-[11px] font-semibold text-slate-600">
-                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+              <div className="flex flex-wrap justify-center lg:justify-end gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-semibold text-slate-600">
+                <span className="px-2.5 sm:px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
                   <span className="text-emerald-500">●</span> 100% Grounded Citations
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+                <span className="px-2.5 sm:px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
                   <span className="text-blue-500">●</span> Sub-second NumPy Search
                 </span>
-                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
+                <span className="px-2.5 sm:px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center gap-1.5 shadow-xs">
                   <span className="text-indigo-500">●</span> Exact Page Coordinates
                 </span>
               </div>

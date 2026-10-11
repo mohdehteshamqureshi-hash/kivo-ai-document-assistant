@@ -15,6 +15,14 @@ export const DEFAULT_GROQ_MODEL = "qwen/qwen3.8-27b";
 export function ensureCitations(answer: string, rankedChunks: RankedChunk[]): string {
   if (rankedChunks.length === 0) return answer;
 
+  // Do not append citations if the model explicitly issued a refusal
+  if (
+    answer.includes(REFUSAL_TEXT) ||
+    answer.toLowerCase().includes("cannot answer this question based on the provided documents")
+  ) {
+    return answer;
+  }
+
   const citationPattern = /\[[^\]]+,\s*(?:Page|p\.)\s*\d+\]/i;
   if (citationPattern.test(answer)) {
     return answer;

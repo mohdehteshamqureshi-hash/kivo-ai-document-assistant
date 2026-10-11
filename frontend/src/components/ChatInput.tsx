@@ -80,7 +80,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
               disabled={!value.trim() || isLoading || disabled}
               onClick={onSubmit}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs transition-all shadow-sm shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs transition-all shadow-sm shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer min-h-[44px]"
             >
               {isLoading ? (
                 <>

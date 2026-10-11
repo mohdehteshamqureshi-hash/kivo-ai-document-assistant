@@ -76,7 +76,7 @@ export const api = {
     await apiClient.delete("/documents");
   },
 
-  async query(queryText: string, topK: number = 4): Promise<QueryResponse> {
+  async query(queryText: string, topK: number = 8): Promise<QueryResponse> {
     const res = await apiClient.post<QueryResponse>("/chat/query", {
       query: queryText,
       top_k: topK,

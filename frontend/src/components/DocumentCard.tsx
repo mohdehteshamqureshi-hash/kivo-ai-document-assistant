@@ -83,7 +83,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             onDelete(document.id, document.name);
           }}
           title="Remove from knowledge base"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 opacity-70 group-hover:opacity-100 transition-all focus:outline-none cursor-pointer"
+          className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 opacity-80 group-hover:opacity-100 transition-all focus:outline-none cursor-pointer"
         >
           <Trash2 className="w-4 h-4" />
         </button>

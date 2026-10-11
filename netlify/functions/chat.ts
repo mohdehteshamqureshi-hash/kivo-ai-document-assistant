@@ -31,7 +31,7 @@ export const handler = async (event: any) => {
   try {
     const body = typeof event.body === "string" ? JSON.parse(event.body || "{}") : event.body || {};
     const queryText = (body.query || body.question || "").trim();
-    const topK = typeof body.top_k === "number" ? body.top_k : 4;
+    const topK = typeof body.top_k === "number" ? body.top_k : 8;
     const targetDocId = body.doc_id || body.document_id || null;
 
     if (!queryText) {
@@ -49,7 +49,7 @@ export const handler = async (event: any) => {
     const targetDocIds = targetDocId ? [targetDocId] : undefined;
     const allChunks = await getAllChunks(targetDocIds, event);
 
-    const rankedChunks = rankChunks(queryVector, allChunks, topK, 0.15);
+    const rankedChunks = rankChunks(queryVector, allChunks, topK, 0.15, queryText);
     const retrievalTimeMs = Math.round((performance.now() - retrievalStart) * 100) / 100;
 
     // Build Citation objects
