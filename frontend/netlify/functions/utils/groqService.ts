@@ -7,6 +7,8 @@ export const DISCLAIMER_TEXT =
 export const REFUSAL_TEXT =
   "I cannot answer this question based on the provided documents. The retrieved context does not contain sufficient information to address your query.";
 
+export const DEFAULT_GROQ_MODEL = "qwen/qwen3.8-27b";
+
 /**
  * Checks if the answer contains valid page citations; if not, appends them.
  */
@@ -49,7 +51,7 @@ export async function generateGroundedAnswer(
   }
 
   const groqApiKey = process.env.GROQ_API_KEY;
-  const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+  const groqModel = process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL;
 
   if (!groqApiKey) {
     // If no key configured, generate extractive grounded synthesis
@@ -103,8 +105,23 @@ Provide a direct, factual answer citing exact page numbers:`;
       answer: finalAnswer,
       modelUsed: `groq-${groqModel}`,
     };
-  } catch (err) {
-    console.warn("Groq SDK call error, trying direct HTTPS fallback:", err);
+  } catch (err: unknown) {
+    const sdkErrStatus =
+      err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
+        ? (err as { status: number }).status
+        : undefined;
+    const sdkErrCode =
+      err && typeof err === "object" && "code" in err && typeof (err as { code: unknown }).code === "string"
+        ? (err as { code: string }).code
+        : undefined;
+    const sdkErrType =
+      err && typeof err === "object" && "type" in err && typeof (err as { type: unknown }).type === "string"
+        ? (err as { type: string }).type
+        : undefined;
+    const sdkCategory = sdkErrCode || sdkErrType || "sdk_error";
+
+    console.warn(`[Groq Diagnostic] SDK call failed (status: ${sdkErrStatus ?? "unknown"}, category: ${sdkCategory}). Attempting direct HTTPS fallback.`);
+
     // Direct HTTPS REST fallback
     try {
       const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -132,8 +149,23 @@ Provide a direct, factual answer citing exact page numbers:`;
           modelUsed: `groq-${groqModel}`,
         };
       }
-    } catch {
-      // Fallback
+
+      // Safe diagnostic logging for non-successful Groq HTTP response
+      let errorCategory = "upstream_http_error";
+      try {
+        const errJson = await resp.json();
+        if (errJson && typeof errJson === "object" && errJson.error) {
+          const code = errJson.error.code;
+          const type = errJson.error.type;
+          errorCategory = (typeof code === "string" && code) || (typeof type === "string" && type) || errorCategory;
+        }
+      } catch {
+        // Response body not JSON or already read
+      }
+      console.warn(`[Groq Diagnostic] HTTPS fallback failed with HTTP status ${resp.status} (category: ${errorCategory})`);
+    } catch (networkErr: unknown) {
+      const netMsg = networkErr instanceof Error ? networkErr.name : "NetworkError";
+      console.warn(`[Groq Diagnostic] HTTPS fallback network error (category: ${netMsg})`);
     }
 
     const top = rankedChunks[0].chunk;

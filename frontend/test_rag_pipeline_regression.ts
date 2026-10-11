@@ -15,6 +15,7 @@ import http from "http";
 import { handler as documentsHandler } from "./netlify/functions/documents";
 import { handler as chatHandler } from "./netlify/functions/chat";
 import { _resetLocalMemoryStoreForTesting } from "./netlify/functions/utils/storage";
+import { generateGroundedAnswer, DEFAULT_GROQ_MODEL } from "./netlify/functions/utils/groqService";
 
 async function runRegressionSuite() {
   console.log("======================================================================");
@@ -212,6 +213,62 @@ async function runRegressionSuite() {
       throw new Error(`FAIL: Expected 0 citations and kivo-guard-zero-context after deletion, got model=${postDeleteData.model_used}`);
     }
     console.log("✅ Verified: Zero-hallucination guard triggers safely when no documents exist.");
+
+    // 8. Verify default GROQ_MODEL fallback is qwen/qwen3.8-27b when GROQ_MODEL is unset
+    console.log("Step 9: Verifying default GROQ_MODEL fallback when unset is qwen/qwen3.8-27b...");
+    delete process.env.GROQ_MODEL;
+    if (DEFAULT_GROQ_MODEL !== "qwen/qwen3.8-27b") {
+      throw new Error(`FAIL: Expected DEFAULT_GROQ_MODEL to be 'qwen/qwen3.8-27b', got '${DEFAULT_GROQ_MODEL}'`);
+    }
+
+    const mockChunk = {
+      score: 0.92,
+      chunk: {
+        id: "chunk_mock_1",
+        doc_id: "doc_mock",
+        doc_name: "photonics_guide.pdf",
+        page: 1,
+        text: "Quantum optical waveguides achieve 99.4% transmission fidelity.",
+        embedding: [],
+      },
+    };
+
+    const origFetch = globalThis.fetch;
+    let invokedModel = "";
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url = input.toString();
+      if (url.includes("api.groq.com")) {
+        try {
+          const body = JSON.parse((init?.body as string) || "{}");
+          invokedModel = body.model;
+        } catch {
+          // ignore
+        }
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: "Transmission fidelity is 99.4% [photonics_guide.pdf, Page 1]." } }],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return origFetch(input, init);
+    };
+
+    try {
+      process.env.GROQ_API_KEY = "mock_gsk_test_key_for_regression";
+      delete process.env.GROQ_MODEL;
+      const groundedRes = await generateGroundedAnswer("What is the transmission fidelity?", [mockChunk]);
+      if (groundedRes.modelUsed !== "groq-qwen/qwen3.8-27b") {
+        throw new Error(`FAIL: Expected modelUsed to be 'groq-qwen/qwen3.8-27b', got '${groundedRes.modelUsed}'`);
+      }
+      if (invokedModel !== "qwen/qwen3.8-27b") {
+        throw new Error(`FAIL: Expected upstream model parameter to be 'qwen/qwen3.8-27b', got '${invokedModel}'`);
+      }
+      console.log(`✅ Verified: Default model is 'qwen/qwen3.8-27b' when GROQ_MODEL is unset (modelUsed='${groundedRes.modelUsed}', upstream='${invokedModel}').`);
+    } finally {
+      globalThis.fetch = origFetch;
+      delete process.env.GROQ_API_KEY;
+    }
 
     console.log("======================================================================");
     console.log("🎉 CROSS-HANDLER RAG STORAGE REGRESSION TEST PASSED WITH 100% SUCCESS!");
