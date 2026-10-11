@@ -9,7 +9,7 @@ export interface RankedChunk {
  * Standard English stopwords used to prevent common grammatical words
  * from artificially dominating lexical keyword relevance in hybrid scoring.
  */
-const STOPWORDS = new Set([
+export const STOPWORDS = new Set([
   "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren",
   "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
   "can", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from",
@@ -24,7 +24,7 @@ const STOPWORDS = new Set([
   "won", "would", "y", "you", "your", "yours", "yourself", "yourselves"
 ]);
 
-function tokenize(text: string): string[] {
+export function tokenize(text: string): string[] {
   return text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
 }
 

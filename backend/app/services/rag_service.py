@@ -136,12 +136,24 @@ class RAGService:
         generation_time_ms = round((time.perf_counter() - gen_start) * 1000, 2)
 
         total_time_ms = round((time.perf_counter() - total_start) * 1000, 2)
-        confidence = round(retrieved[0][1], 4) if retrieved else 0.0
+        lower_ans = answer.lower()
+        is_refusal = (
+            model_used == "zero-hallucination-guard"
+            or "no relevant passages were found" in lower_ans
+            or "not contain sufficient" in lower_ans
+            or "cannot answer" in lower_ans
+            or "insufficient information" in lower_ans
+        )
+        answer_status = "insufficient_information" if is_refusal else "answered"
+        final_citations = [] if is_refusal else citations
+        confidence = 0.0 if (is_refusal or not retrieved) else round(retrieved[0][1], 4)
 
         return QueryResponse(
             query=req.query,
             answer=answer,
-            citations=citations,
+            answer_status=answer_status,
+            citations=final_citations,
+            retrieved_passages=citations,
             retrieval_time_ms=retrieval_time_ms,
             generation_time_ms=generation_time_ms,
             total_time_ms=total_time_ms,

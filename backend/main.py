@@ -4,7 +4,7 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from config import settings
-from llm_service import LLMService, DISCLAIMER_TEXT
+from llm_service import LLMService, DISCLAIMER_TEXT, INSUFFICIENT_INFO_RESPONSE
 from rag_engine import rag_engine
 from schemas import (
     ChatRequest,
@@ -166,6 +166,41 @@ async def list_documents():
     return rag_engine.list_documents()
 
 
+def is_refusal_answer(answer: str, model_used: str = "") -> bool:
+    """
+    Robustly identifies insufficient-information refusal answers across LLM and guard outputs.
+    Avoids brittle single-string matching.
+    """
+    if not answer:
+        return True
+    if model_used == "zero-hallucination-guard":
+        return True
+    lower = answer.lower().strip()
+    if INSUFFICIENT_INFO_RESPONSE.lower() in lower:
+        return True
+    refusal_phrases = [
+        "cannot answer this question based on the provided",
+        "can not answer this question based on the provided",
+        "unable to answer this question based on the provided",
+        "not contain sufficient information",
+        "does not contain sufficient information",
+        "do not contain sufficient information",
+        "not contain enough information",
+        "does not contain enough information",
+        "do not contain enough information",
+        "insufficient information to answer",
+        "insufficient information to address",
+        "provided context does not contain",
+        "supplied documents do not contain",
+        "provided documents do not contain",
+        "retrieved context does not contain",
+        "no information provided about",
+        "not mentioned in the provided context",
+        "not mentioned in the provided documents",
+    ]
+    return any(p in lower for p in refusal_phrases)
+
+
 # -----------------------------------------------------------------------------
 # 4. POST /chat — Grounded RAG Q&A with Verified Citations
 # -----------------------------------------------------------------------------
@@ -199,14 +234,14 @@ async def chat_query(req: ChatRequest):
     )
     retrieval_time_ms = round((time.perf_counter() - retrieval_start) * 1000, 2)
 
-    # Step 2: Build Citations
-    citations: List[Citation] = []
+    # Step 2: Build Candidate Passages (Diagnostic retrieval candidates)
+    candidate_passages: List[Citation] = []
     for chunk, score in top_chunks:
         snippet = chunk.chunk_text.strip().replace("\n", " ")
         if len(snippet) > 200:
             snippet = snippet[:200] + "..."
 
-        citations.append(
+        candidate_passages.append(
             Citation(
                 file=chunk.filename,
                 page=chunk.page_number,
@@ -223,13 +258,23 @@ async def chat_query(req: ChatRequest):
     generation_time_ms = round((time.perf_counter() - gen_start) * 1000, 2)
     total_time_ms = round((time.perf_counter() - total_start) * 1000, 2)
 
-    confidence = round(top_chunks[0][1], 4) if top_chunks else 0.0
+    # Determine refusal status
+    is_refusal = is_refusal_answer(answer, model_used)
+    answer_status = "insufficient_information" if is_refusal else "answered"
+
+    # Citations: empty on refusal; populated on answered
+    citations = [] if is_refusal else candidate_passages
+
+    # Confidence: 0.0 on refusal or zero context; retrieval score on answered
+    confidence = 0.0 if (is_refusal or not top_chunks) else round(top_chunks[0][1], 4)
 
     return ChatResponse(
         question=question_text,
         query=question_text,
         answer=answer,
+        answer_status=answer_status,
         citations=citations,
+        retrieved_passages=candidate_passages,
         retrieval_time_ms=retrieval_time_ms,
         generation_time_ms=generation_time_ms,
         total_time_ms=total_time_ms,

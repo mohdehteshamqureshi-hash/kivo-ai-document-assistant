@@ -27,7 +27,9 @@ export interface Citation {
 export interface QueryResponse {
   query: string;
   answer: string;
+  answer_status?: "answered" | "insufficient_information";
   citations: Citation[];
+  retrieved_passages?: Citation[];
   retrieval_time_ms: number;
   generation_time_ms: number;
   total_time_ms: number;

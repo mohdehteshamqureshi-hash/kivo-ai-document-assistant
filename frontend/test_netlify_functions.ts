@@ -19,9 +19,15 @@ import { handler as documentsHandler } from "./netlify/functions/documents";
 import { handler as chatHandler } from "./netlify/functions/chat";
 
 function generateTestPdfBuffer(text: string): Buffer {
-  const escaped = text.replace(/[()]/g, "");
+  const lines = text.split("\n");
+  const textCommands = lines
+    .map((l, i) => {
+      const clean = l.replace(/[()]/g, "");
+      return i === 0 ? `72 712 Td\n(${clean}) Tj` : `0 -18 Td\n(${clean}) Tj`;
+    })
+    .join("\n");
   const streamContent = Buffer.from(
-    `BT\n/F1 12 Tf\n72 712 Td\n(${escaped}) Tj\nET\n`,
+    `BT\n/F1 12 Tf\n${textCommands}\nET\n`,
     "utf-8"
   );
   const header = Buffer.from(
@@ -34,7 +40,7 @@ function generateTestPdfBuffer(text: string): Buffer {
     Buffer.from("endstream endobj\n"),
   ]);
   const trailer = Buffer.from(
-    "xref\n0 6\n0000000000 65535 f \ntrailer <</Size 6 /Root 1 0 R>>\nstartxref\n350\n%%EOF\n"
+    "xref\n0 6\n0000000000 65535 f \ntrailer <</Size 6 /Root 1 0 R>>\nstartxref\n0\n%%EOF\n"
   );
   return Buffer.concat([header, streamObj, trailer]);
 }
@@ -76,7 +82,9 @@ async function runTestSuite() {
   // -------------------------------------------------------------------------
   console.log("\n--- Test 2: POST /documents (Upload PDF) ---");
   const pdfText =
-    "Solar Energy Engineering Manual. Chapter 4 states that under standard AM1.5 illumination conditions, photovoltaic cell efficiency reached 24.3 percent. Maximum inverter DC voltage is 48 volts with a thermal cutoff at 85 degrees Celsius.";
+    "Solar Energy Engineering Manual.\n" +
+    "Under standard AM1.5 illumination conditions photovoltaic cell efficiency reached 24.3 percent.\n" +
+    "Maximum inverter DC voltage is 48 volts with a thermal cutoff at 85 degrees Celsius.";
   const pdfBuffer = generateTestPdfBuffer(pdfText);
   const boundary = "----NetlifyFormBoundary7MA4YWxkTrZu0gW";
   const multipartBody = buildMultipartFormData("solar_specs.pdf", pdfBuffer, boundary);

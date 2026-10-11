@@ -1,7 +1,7 @@
 import { getAllChunks, initStorage } from "./utils/storage";
 import { generateEmbedding } from "./utils/embeddings";
 import { rankChunks } from "./utils/vectorMath";
-import { generateGroundedAnswer } from "./utils/groqService";
+import { generateGroundedAnswer, isRefusal } from "./utils/groqService";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handler = async (event: any) => {
@@ -52,8 +52,8 @@ export const handler = async (event: any) => {
     const rankedChunks = rankChunks(queryVector, allChunks, topK, 0.15, queryText);
     const retrievalTimeMs = Math.round((performance.now() - retrievalStart) * 100) / 100;
 
-    // Build Citation objects
-    const citations = rankedChunks.map(({ chunk, score }) => ({
+    // Build candidate passage objects (diagnostic retrieval results)
+    const candidatePassages = rankedChunks.map(({ chunk, score }) => ({
       file: chunk.doc_name,
       page: chunk.page,
       score: Math.round(score * 1000) / 1000,
@@ -66,11 +66,20 @@ export const handler = async (event: any) => {
     const generationTimeMs = Math.round((performance.now() - generationStart) * 100) / 100;
     const totalTimeMs = Math.round((performance.now() - totalStart) * 100) / 100;
 
-    // Confidence metric (average similarity of top citations, 0.0 - 1.0)
+    // Determine refusal status
+    const isRefusalResponse = isRefusal(answer, modelUsed);
+    const answerStatus = isRefusalResponse ? "insufficient_information" : "answered";
+
+    // Verified citations: empty on refusal; populated on answered
+    const citations = isRefusalResponse ? [] : candidatePassages;
+
+    // Confidence metric:
+    // On insufficient-information refusals or zero context, confidence MUST be 0.0.
+    // On answered queries, retrieval score serves as the retrieval match confidence.
     const confidence =
-      rankedChunks.length > 0
-        ? Math.round((rankedChunks.reduce((acc, c) => acc + c.score, 0) / rankedChunks.length) * 100) / 100
-        : 0.0;
+      isRefusalResponse || rankedChunks.length === 0
+        ? 0.0
+        : Math.round((rankedChunks.reduce((acc, c) => acc + c.score, 0) / rankedChunks.length) * 100) / 100;
 
     return {
       statusCode: 200,
@@ -78,7 +87,9 @@ export const handler = async (event: any) => {
       body: JSON.stringify({
         query: queryText,
         answer,
+        answer_status: answerStatus,
         citations,
+        retrieved_passages: candidatePassages,
         retrieval_time_ms: retrievalTimeMs,
         generation_time_ms: generationTimeMs,
         total_time_ms: totalTimeMs,

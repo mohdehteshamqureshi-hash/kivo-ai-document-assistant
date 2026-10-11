@@ -56,7 +56,9 @@ class ChatResponse(BaseModel):
     question: str
     query: Optional[str] = None
     answer: str
+    answer_status: Optional[str] = "answered"
     citations: List[Citation]
+    retrieved_passages: Optional[List[Citation]] = None
     retrieval_time_ms: float
     generation_time_ms: float
     total_time_ms: float

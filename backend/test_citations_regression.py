@@ -171,6 +171,46 @@ def run_regression_tests():
     passed += 1
 
     # -------------------------------------------------------------------------
+    # Test 5: Refusal with Retrieved Candidates (Zero Citations & Zero Confidence)
+    # -------------------------------------------------------------------------
+    print("\n--- Test 5: Refusal with Retrieved Candidates Diagnostic Safety ---")
+    rag_engine.chunks = []
+    rag_engine.documents = {}
+    rag_engine.chunks.append(
+        Chunk(
+            chunk_id="brill_chunk_1",
+            document_id="doc_brill",
+            filename="snlp_tagging_notes.pdf",
+            page_number=17,
+            chunk_text="Brill tagging is an error-driven transformation-based tagging method. It initialises tags with simple rules and learns patch transformation templates.",
+            embedding=rag_engine.embedding_model.encode(["Brill tagging is transformation-based tagging."])[0],
+        )
+    )
+
+    unsupported_payload = {
+        "question": "Explain the stages of NLP",
+        "top_k": 2,
+    }
+
+    res_unsupported = client.post("/chat", json=unsupported_payload)
+    assert res_unsupported.status_code == 200
+    data_unsupported = res_unsupported.json()
+
+    print(f"Answer: {data_unsupported['answer'][:100]}...")
+    print(f"Answer Status: {data_unsupported.get('answer_status')}")
+    print(f"Citations Count: {len(data_unsupported['citations'])}")
+    print(f"Confidence: {data_unsupported['confidence']}")
+    print(f"Retrieved Passages Count: {len(data_unsupported.get('retrieved_passages', []))}")
+
+    assert data_unsupported.get("answer_status") == "insufficient_information", "Expected answer_status='insufficient_information'"
+    assert len(data_unsupported["citations"]) == 0, "Expected 0 citations on refusal"
+    assert data_unsupported["confidence"] == 0.0, "Expected confidence=0.0 on refusal"
+    assert len(data_unsupported.get("retrieved_passages", [])) > 0, "Expected candidate passages preserved in retrieved_passages"
+    print("✅ Test 5 PASSED: Unsupported query correctly returned refusal, 0 citations, 0.0 confidence, and preserved retrieved_passages diagnostics.")
+    passed += 1
+    total += 1
+
+    # -------------------------------------------------------------------------
     # Summary
     # -------------------------------------------------------------------------
     print("\n" + "=" * 70)

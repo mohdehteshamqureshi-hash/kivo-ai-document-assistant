@@ -18,16 +18,16 @@ export const ConnectionBanner: React.FC<ConnectionBannerProps> = ({
         <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600 mt-0.5 flex-shrink-0">
           <AlertCircle className="w-5 h-5" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <h4 className="text-sm font-semibold text-rose-900 flex items-center gap-2">
             Backend Offline — RAG Service Unreachable
           </h4>
-          <p className="text-xs text-rose-700 mt-0.5">
-            Unable to connect to FastAPI at <code className="bg-white border border-rose-200 px-1.5 py-0.5 rounded text-rose-900 font-mono text-[11px]">{apiUrl}</code>.
+          <p className="text-xs text-rose-700 mt-0.5 break-words">
+            Unable to connect to FastAPI at <code className="bg-white border border-rose-200 px-1.5 py-0.5 rounded text-rose-900 font-mono text-[11px] break-all">{apiUrl}</code>.
             Real-time vector indexing and chat queries are paused.
           </p>
-          <div className="flex items-center gap-1.5 text-[11px] text-rose-600 mt-1 font-mono">
-            <Terminal className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1.5 text-[11px] text-rose-600 mt-1 font-mono break-all">
+            <Terminal className="w-3.5 h-3.5 flex-shrink-0" />
             <span>To start backend: cd backend &amp;&amp; python run.py</span>
           </div>
         </div>

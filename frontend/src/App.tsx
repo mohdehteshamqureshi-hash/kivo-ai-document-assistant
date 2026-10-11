@@ -230,6 +230,8 @@ export default function App() {
         role: "assistant",
         text: response.answer,
         citations: response.citations,
+        retrievedPassages: response.retrieved_passages,
+        answerStatus: response.answer_status,
         model: response.model_used,
         totalTimeMs: response.total_time_ms,
         retrievalTimeMs: response.retrieval_time_ms,
@@ -361,7 +363,7 @@ export default function App() {
             </div>
 
             {/* Sticky Bottom Input Bar */}
-            <div className="pt-3 pb-2 sticky bottom-0 bg-[#f8fafc]/90 backdrop-blur-md">
+            <div className="pt-2 sm:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] sticky bottom-0 bg-[#f8fafc]/95 backdrop-blur-md w-full max-w-full z-10">
               <ChatInput
                 value={inputQuery}
                 onChange={setInputQuery}
@@ -386,9 +388,9 @@ export default function App() {
   // VIEW 2: 3D ROBOT LANDING PAGE & ARCHITECTURE OVERVIEW (Home View)
   // ---------------------------------------------------------------------------
   return (
-    <div className="min-h-screen w-full bg-white text-slate-900 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white text-slate-900 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
       {/* 1. Futuristic Landing Page with Interactive 3D Robot */}
-      <section id="overview" className="w-full relative">
+      <section id="overview" className="w-full max-w-full overflow-hidden relative">
         <RobotHero
           backgroundText="KIVO AI"
           ctaText="Open Workspace"
@@ -416,10 +418,12 @@ export default function App() {
       </section>
 
       {/* 2. Architecture & Capabilities Section */}
-      <section id="features" className="w-full py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200 bg-gradient-to-b from-[#f8fafc] via-white to-[#f8fafc] relative">
+      <section id="features" className="w-full max-w-full overflow-hidden py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200 bg-gradient-to-b from-[#f8fafc] via-white to-[#f8fafc] relative">
         {/* Ambient Glows */}
-        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-sky-500/10 blur-[120px] pointer-events-none rounded-full" />
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-blue-600/10 blur-[120px] pointer-events-none rounded-full" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-sky-500/10 blur-[60px] sm:blur-[120px] rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 sm:w-96 sm:h-96 bg-blue-600/10 blur-[60px] sm:blur-[120px] rounded-full" />
+        </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -496,18 +500,18 @@ export default function App() {
           </div>
 
           {/* Real-time Diagnostics Bar with Direct Workspace Launch */}
-          <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
               <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-semibold text-slate-800">
+              <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
                 Active Knowledge Engine Status
               </span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 flex-shrink-0">
                 {isBackendOnline ? "Engine Online" : "Service Offline"}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 sm:gap-8 text-xs font-mono text-slate-500">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-6 text-xs font-mono text-slate-500 min-w-0 break-words">
               <div>
                 <span className="text-slate-400">Indexed Documents: </span>
                 <strong className="text-slate-800">{documents.length}</strong>
@@ -518,7 +522,7 @@ export default function App() {
               </div>
               <div>
                 <span className="text-slate-400">Engine: </span>
-                <strong className="text-sky-600 font-semibold">Normalized Dense Vector Space</strong>
+                <strong className="text-sky-600 font-semibold">Normalized Dense Vectors</strong>
               </div>
             </div>
 
@@ -534,7 +538,7 @@ export default function App() {
       </section>
 
       {/* 3. Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-auto">
+      <footer className="w-full max-w-full overflow-hidden border-t border-slate-200 bg-white py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <BrandLogo size="sm" showTagline={false} />

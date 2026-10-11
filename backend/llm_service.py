@@ -68,6 +68,15 @@ class LLMService:
         if not answer_text or answer_text == INSUFFICIENT_INFO_RESPONSE:
             return answer_text
 
+        lower_ans = answer_text.lower()
+        refusal_markers = [
+            "cannot answer", "unable to answer", "not contain sufficient",
+            "not contain enough", "insufficient information", "supplied documents do not",
+            "provided context does not", "provided documents do not",
+        ]
+        if any(marker in lower_ans for marker in refusal_markers):
+            return answer_text
+
         missing_citations = []
         for chunk, _ in retrieved_chunks:
             tag = f"[{chunk.filename}, Page {chunk.page_number}]"

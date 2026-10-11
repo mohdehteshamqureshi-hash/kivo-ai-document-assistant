@@ -1,6 +1,4 @@
-"use client";
-
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect, Component } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -37,11 +35,13 @@ function ResponsiveGroup({
   const { viewport, size } = useThree();
   const isMobile = size.width < 768;
   const isSmallMobile = size.width < 450;
+  const isTinyMobile = size.width < 360;
 
   // Responsive scale & position: on mobile, position robot higher up so it floats
   // proudly in the hero stage area above the headline without being obscured
-  const responsiveScale = (isSmallMobile ? 0.78 : isMobile ? 0.9 : Math.min(1.1, viewport.width / 3.5)) * scale;
-  const yOffset = isSmallMobile ? 0.55 : isMobile ? 0.35 : 0;
+  const responsiveScale =
+    (isTinyMobile ? 0.68 : isSmallMobile ? 0.76 : isMobile ? 0.88 : Math.min(1.1, viewport.width / 3.5)) * scale;
+  const yOffset = isTinyMobile ? 0.58 : isSmallMobile ? 0.52 : isMobile ? 0.35 : 0;
 
   return (
     <group position={[0, yOffset, 0]} scale={responsiveScale}>
@@ -795,9 +795,9 @@ function AntennaNavbar({
   const lineOpacity = useTransform(scrollY, [0, 50], [1, 0]);
 
   return (
-    <nav className="sticky top-0 z-50 w-full pt-3 sm:pt-6 px-3 sm:px-8 pointer-events-none">
-      <div className="w-full max-w-[1400px] mx-auto flex flex-col relative pointer-events-auto">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between relative gap-2 sm:gap-4 lg:gap-0 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-2xl lg:rounded-full px-3.5 sm:px-6 py-2 sm:py-3 shadow-lg shadow-slate-200/50">
+    <nav className="sticky top-0 z-50 w-full pt-2.5 sm:pt-6 px-2.5 sm:px-8 pointer-events-none max-w-full overflow-hidden">
+      <div className="w-full max-w-[1400px] mx-auto flex flex-col relative pointer-events-auto min-w-0">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between relative gap-2 sm:gap-4 lg:gap-0 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-2xl lg:rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-lg shadow-slate-200/50 min-w-0 overflow-hidden">
           {/* Top/Main Row: Logo + Primary CTA on mobile, or full left side on desktop */}
           <div className="flex items-center justify-between lg:justify-start gap-3 sm:gap-5 z-20">
             <BrandLogo size="sm" showTagline={false} />
@@ -871,9 +871,9 @@ function AntennaNavbar({
           </div>
 
           {/* Mobile Navigation Links Row (compact pill row for mobile) */}
-          <div className="flex lg:hidden items-center justify-start sm:justify-center gap-1.5 pt-1.5 pb-0.5 border-t border-slate-100/80 overflow-x-auto max-w-full px-1">
+          <div className="flex lg:hidden items-center justify-center gap-1 sm:gap-1.5 pt-1.5 pb-0.5 border-t border-slate-100/80 overflow-hidden max-w-full px-1">
             {leftItems.map((item) => {
-              const linkClass = `px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap min-h-[32px] inline-flex items-center ${
+              const linkClass = `px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap min-h-[30px] inline-flex items-center ${
                 item.active
                   ? "bg-blue-50 text-blue-700 border border-blue-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -895,7 +895,7 @@ function AntennaNavbar({
               href={contactHref}
               target={contactTarget}
               rel={contactTarget === "_blank" ? "noopener noreferrer" : undefined}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-900 whitespace-nowrap min-h-[32px] inline-flex items-center"
+              className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-slate-900 whitespace-nowrap min-h-[30px] hidden sm:inline-flex items-center"
             >
               {contactText}
             </a>
@@ -947,6 +947,52 @@ function AntennaNavbar({
       </div>
     </nav>
   );
+}
+
+function RobotFallbackMascot({ onCtaClick }: { onCtaClick?: () => void }) {
+  return (
+    <div
+      onClick={onCtaClick}
+      className="w-full h-full flex items-center justify-center pointer-events-auto cursor-pointer"
+      title="Explore RAG App"
+    >
+      <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-3xl bg-white/90 border border-sky-200 shadow-xl shadow-sky-500/15 backdrop-blur-md flex flex-col items-center justify-center p-4 transition-transform hover:scale-105 active:scale-95">
+        <div className="w-24 h-18 sm:w-32 sm:h-24 bg-slate-900 rounded-2xl flex items-center justify-center gap-3 shadow-inner relative overflow-hidden">
+          <div className="w-3 h-5 bg-[#00ffc6] rounded-sm shadow-[0_0_12px_#00ffc6] animate-pulse" />
+          <div className="w-3 h-5 bg-[#00ffc6] rounded-sm shadow-[0_0_12px_#00ffc6] animate-pulse" />
+        </div>
+        <span className="mt-2.5 text-[10px] sm:text-xs font-mono font-bold text-sky-800 tracking-wider">
+          KIVO AI MASCOT
+        </span>
+      </div>
+    </div>
+  );
+}
+
+interface CanvasErrorBoundaryState {
+  hasError: boolean;
+}
+
+class CanvasErrorBoundary extends Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  CanvasErrorBoundaryState
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.warn("Canvas WebGL error caught by boundary:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
 }
 
 export function RobotHero({
@@ -1002,14 +1048,14 @@ export function RobotHero({
 
       {/* Watermark Branding element integrated into design */}
       <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
+        className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden max-w-full"
         style={{ zIndex: 0 }}
       >
-        <div className="relative flex flex-col items-center select-none -translate-y-8">
+        <div className="relative flex flex-col items-center select-none -translate-y-8 max-w-full">
           <h1
-            className="font-sans font-black select-none whitespace-nowrap tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-slate-900/[0.08] via-sky-500/[0.04] to-transparent"
+            className="font-sans font-black select-none whitespace-nowrap tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-slate-900/[0.08] via-sky-500/[0.04] to-transparent max-w-full"
             style={{
-              fontSize: "clamp(5rem, 18vw, 15rem)",
+              fontSize: "clamp(3.5rem, 16vw, 15rem)",
               lineHeight: 1,
               textShadow: "0 0 80px rgba(14, 165, 233, 0.08)",
             }}
@@ -1022,75 +1068,84 @@ export function RobotHero({
         </div>
       </div>
 
-      {/* 3D Interactive Robot Canvas */}
-      <div className="absolute inset-0 z-10">
-        <Canvas shadows camera={{ position: [0, 0.2, 6], fov: 40 }}>
-          <ambientLight intensity={entorno.luzAmbiente} color="#ffffff" />
-
-          <directionalLight
-            position={[0, 6, 3]}
-            intensity={entorno.luzPrincipal}
-            color={entorno.luzPrincipalColor}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-            shadow-bias={-0.0005}
+      {/* 3D Interactive Robot Canvas with Fallback */}
+      <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none touch-pan-y w-full h-full max-w-full">
+        <CanvasErrorBoundary
+          fallback={<RobotFallbackMascot onCtaClick={onCtaClick} />}
+        >
+          <Canvas
+            shadows
+            camera={{ position: [0, 0.2, 6], fov: 40 }}
+            style={{ touchAction: "pan-y", pointerEvents: "auto" }}
+            dpr={[1, 1.5]}
           >
-            <orthographicCamera
-              attach="shadow-camera"
-              args={[-1.5, 1.5, 1.5, -1.5, 0.1, 20]}
+            <ambientLight intensity={entorno.luzAmbiente} color="#ffffff" />
+
+            <directionalLight
+              position={[0, 6, 3]}
+              intensity={entorno.luzPrincipal}
+              color={entorno.luzPrincipalColor}
+              castShadow
+              shadow-mapSize={[1024, 1024]}
+              shadow-bias={-0.0005}
+            >
+              <orthographicCamera
+                attach="shadow-camera"
+                args={[-1.5, 1.5, 1.5, -1.5, 0.1, 20]}
+              />
+            </directionalLight>
+
+            <directionalLight
+              position={[-5, 2, -5]}
+              intensity={entorno.luzRelleno}
+              color={entorno.luzRellenoColor}
             />
-          </directionalLight>
 
-          <directionalLight
-            position={[-5, 2, -5]}
-            intensity={entorno.luzRelleno}
-            color={entorno.luzRellenoColor}
-          />
-
-          <directionalLight
-            position={[0, -2, -3]}
-            intensity={1.2}
-            color="#38bdf8"
-          />
-
-          <Environment preset="studio" blur={0.5} />
-
-          <ResponsiveGroup scale={scale}>
-            <ContactShadows
-              position={[0, -0.79, 0]}
-              opacity={entorno.sombraOpacidad}
-              scale={15}
-              resolution={1024}
-              blur={entorno.sombraBlur}
-              far={2.5}
-              color="#0284c7"
+            <directionalLight
+              position={[0, -2, -3]}
+              intensity={1.2}
+              color="#38bdf8"
             />
-            <RobotPrototype
-              neckParams={{
-                baseR: 0.215,
-                baseH: -0.05,
-                midR: 0.28,
-                midH: 0.02,
-                lipBottomR: 0.295,
-                lipBottomH: 0.045,
-                lipTopR: 0.27,
-                lipTopH: 0.055,
-                innerR: 0.1,
-                innerDropH: 0.0,
-              }}
-              bodyParams={{
-                bodyBevelR: 0.235,
-                bodyBevelY: 0.34,
-                bodyBevelT: 0.025,
-              }}
-              color={color}
-              pantallaColor={pantallaColor}
-              pantallaBrillo={pantallaBrillo}
-              blinkCycle={blinkCycle}
-              metalness={metalness}
-            />
-          </ResponsiveGroup>
-        </Canvas>
+
+            <Environment preset="studio" blur={0.5} />
+
+            <ResponsiveGroup scale={scale}>
+              <ContactShadows
+                position={[0, -0.79, 0]}
+                opacity={entorno.sombraOpacidad}
+                scale={15}
+                resolution={1024}
+                blur={entorno.sombraBlur}
+                far={2.5}
+                color="#0284c7"
+              />
+              <RobotPrototype
+                neckParams={{
+                  baseR: 0.215,
+                  baseH: -0.05,
+                  midR: 0.28,
+                  midH: 0.02,
+                  lipBottomR: 0.295,
+                  lipBottomH: 0.045,
+                  lipTopR: 0.27,
+                  lipTopH: 0.055,
+                  innerR: 0.1,
+                  innerDropH: 0.0,
+                }}
+                bodyParams={{
+                  bodyBevelR: 0.235,
+                  bodyBevelY: 0.34,
+                  bodyBevelT: 0.025,
+                }}
+                color={color}
+                pantallaColor={pantallaColor}
+                pantallaBrillo={pantallaBrillo}
+                blinkCycle={blinkCycle}
+                metalness={metalness}
+              />
+            </ResponsiveGroup>
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
       {/* Hero UI Overlay with Navbar and Compelling Content */}

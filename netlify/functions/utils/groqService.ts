@@ -1,5 +1,6 @@
 import { Groq } from "groq-sdk";
 import type { RankedChunk } from "./vectorMath";
+import { STOPWORDS, tokenize } from "./vectorMath";
 
 export const DISCLAIMER_TEXT =
   "Note: This answer is generated from uploaded document passages. Verify against the cited pages.";
@@ -10,16 +11,51 @@ export const REFUSAL_TEXT =
 export const DEFAULT_GROQ_MODEL = "qwen/qwen3.8-27b";
 
 /**
+ * Robustly detects whether a synthesized answer is an insufficient-information refusal.
+ * Handles exact matches and diverse LLM refusal phrasing without brittle single-string matching.
+ */
+export function isRefusal(answer: string, modelUsed?: string): boolean {
+  if (!answer) return true;
+  if (modelUsed === "kivo-guard-zero-context") return true;
+
+  const lower = answer.toLowerCase().trim();
+
+  if (lower.includes(REFUSAL_TEXT.toLowerCase())) return true;
+
+  const refusalPhrases = [
+    "cannot answer this question based on the provided",
+    "can not answer this question based on the provided",
+    "unable to answer this question based on the provided",
+    "not contain sufficient information",
+    "does not contain sufficient information",
+    "do not contain sufficient information",
+    "not contain enough information",
+    "does not contain enough information",
+    "do not contain enough information",
+    "insufficient information to answer",
+    "insufficient information to address",
+    "provided context does not contain",
+    "supplied documents do not contain",
+    "provided documents do not contain",
+    "retrieved context does not contain",
+    "no information provided about",
+    "not mentioned in the provided context",
+    "not mentioned in the provided documents",
+    "the supplied documents do not contain",
+  ];
+
+  return refusalPhrases.some((phrase) => lower.includes(phrase));
+}
+
+/**
  * Checks if the answer contains valid page citations; if not, appends them.
+ * Never appends citations to an insufficient-information refusal.
  */
 export function ensureCitations(answer: string, rankedChunks: RankedChunk[]): string {
   if (rankedChunks.length === 0) return answer;
 
   // Do not append citations if the model explicitly issued a refusal
-  if (
-    answer.includes(REFUSAL_TEXT) ||
-    answer.toLowerCase().includes("cannot answer this question based on the provided documents")
-  ) {
+  if (isRefusal(answer)) {
     return answer;
   }
 
@@ -44,6 +80,53 @@ export function ensureCitations(answer: string, rankedChunks: RankedChunk[]): st
 }
 
 /**
+ * Safe, deterministic extractive support evaluation when LLM API is unavailable.
+ *
+ * Limitations: Simple token overlap and score floors confirm lexical presence and retrieval strength,
+ * but do not perform semantic reasoning or factual inference. This acts as a conservative fail-safe
+ * to avoid returning arbitrary retrieved passages as answers when LLM synthesis is offline.
+ */
+export function evaluateExtractiveSupport(
+  question: string,
+  topRanked: RankedChunk
+): { supported: boolean; answer: string } {
+  if (!topRanked || !topRanked.chunk || !topRanked.chunk.text) {
+    return { supported: false, answer: REFUSAL_TEXT };
+  }
+
+  const queryTokens = tokenize(question).filter(
+    (t) => !STOPWORDS.has(t) && t.length > 2
+  );
+  const targetTokens =
+    queryTokens.length > 0
+      ? Array.from(new Set(queryTokens))
+      : Array.from(new Set(tokenize(question).filter((t) => t.length > 2)));
+
+  if (targetTokens.length === 0) {
+    return { supported: false, answer: REFUSAL_TEXT };
+  }
+
+  const chunkLower = topRanked.chunk.text.toLowerCase();
+  const matchedTokens = targetTokens.filter((token) => chunkLower.includes(token));
+  const coverage = matchedTokens.length / targetTokens.length;
+
+  // Safe conservative criteria: score floor >= 0.40 and high keyword coverage
+  const scorePasses = topRanked.score >= 0.40;
+  const coveragePasses = targetTokens.length <= 2 ? coverage === 1.0 : coverage >= 0.60;
+
+  if (!scorePasses || !coveragePasses) {
+    return { supported: false, answer: REFUSAL_TEXT };
+  }
+
+  const topChunk = topRanked.chunk;
+  const snippet =
+    topChunk.text.length > 300 ? `${topChunk.text.slice(0, 300)}...` : topChunk.text;
+  const answer = `According to ${topChunk.doc_name} (Page ${topChunk.page}):\n\n"${snippet}" [${topChunk.doc_name}, Page ${topChunk.page}]`;
+
+  return { supported: true, answer };
+}
+
+/**
  * Invokes Groq API to synthesize a grounded answer using retrieved document context.
  */
 export async function generateGroundedAnswer(
@@ -62,11 +145,10 @@ export async function generateGroundedAnswer(
   const groqModel = process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL;
 
   if (!groqApiKey) {
-    // If no key configured, generate extractive grounded synthesis
-    const topChunk = rankedChunks[0].chunk;
-    const extractiveAnswer = `According to ${topChunk.doc_name} (Page ${topChunk.page}):\n\n"${topChunk.text.slice(0, 300)}..." [${topChunk.doc_name}, Page ${topChunk.page}]`;
+    // Deterministic extractive check: assess whether the top chunk legitimately supports the question
+    const support = evaluateExtractiveSupport(question, rankedChunks[0]);
     return {
-      answer: extractiveAnswer,
+      answer: support.answer,
       modelUsed: "kivo-extractive-fallback",
     };
   }
@@ -75,7 +157,7 @@ export async function generateGroundedAnswer(
   const formattedContext = rankedChunks
     .map(
       ({ chunk, score }, idx) =>
-        `[Context Passage ${idx + 1}] (Document: ${chunk.doc_name}, Page: ${chunk.page}, Relevance: ${Math.round(score * 100)}%):\n${chunk.text}`
+        `[Context Passage ${idx + 1}] (Document: ${chunk.doc_name}, Page: ${chunk.page}, Score: ${score.toFixed(2)}):\n${chunk.text}`
     )
     .join("\n\n---\n\n");
 
@@ -107,7 +189,7 @@ Provide a direct, factual answer citing exact page numbers:`;
     });
 
     const rawAnswer = completion.choices[0]?.message?.content || REFUSAL_TEXT;
-    const finalAnswer = ensureCitations(rawAnswer, rankedChunks);
+    const finalAnswer = isRefusal(rawAnswer) ? REFUSAL_TEXT : ensureCitations(rawAnswer, rankedChunks);
 
     return {
       answer: finalAnswer,
@@ -152,8 +234,9 @@ Provide a direct, factual answer citing exact page numbers:`;
       if (resp.ok) {
         const data = await resp.json();
         const raw = data.choices?.[0]?.message?.content || REFUSAL_TEXT;
+        const finalAnswer = isRefusal(raw) ? REFUSAL_TEXT : ensureCitations(raw, rankedChunks);
         return {
-          answer: ensureCitations(raw, rankedChunks),
+          answer: finalAnswer,
           modelUsed: `groq-${groqModel}`,
         };
       }
@@ -176,9 +259,17 @@ Provide a direct, factual answer citing exact page numbers:`;
       console.warn(`[Groq Diagnostic] HTTPS fallback network error (category: ${netMsg})`);
     }
 
-    const top = rankedChunks[0].chunk;
+    // Safe extractive check on API failure: do not present unrelated passage
+    const fallbackSupport = evaluateExtractiveSupport(question, rankedChunks[0]);
+    if (!fallbackSupport.supported) {
+      return {
+        answer: REFUSAL_TEXT,
+        modelUsed: "kivo-fallback-error",
+      };
+    }
+
     return {
-      answer: `Unable to complete Groq API call. Top relevant excerpt from ${top.doc_name} (Page ${top.page}):\n\n"${top.text.slice(0, 250)}..." [${top.doc_name}, Page ${top.page}]`,
+      answer: `Unable to complete Groq API call. Top relevant excerpt:\n\n${fallbackSupport.answer}`,
       modelUsed: "kivo-fallback-error",
     };
   }
